@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/jmoiron/sqlx"
-    _ "github.com/lib/pq"
+	//"github.com/jmoiron/sqlx"
+    _ //"github.com/lib/pq"
 )
 
 func main() {
