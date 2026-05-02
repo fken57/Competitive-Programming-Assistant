@@ -9,8 +9,9 @@ import (
 func main() {
 	e := echo.New()
 	e.Use(middleware.CORS())
+	g := e.Group("/apis")
 
-	e.GET("/hello", func(c echo.Context) error {
+	g.GET("/hello", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World.\n")
 	})
     
