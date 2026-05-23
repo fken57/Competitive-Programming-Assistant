@@ -1,33 +1,33 @@
 package graph
 
 import (
-	"backend/internal/domain/graph"
-	"backend/internal/domain/graph/graphDataBase"
+	"backend/internal/domain/unweightedgraph"
+	"backend/internal/domain/unweightedgraph/graphdatabase"
 )
 
 type NoCostGraphUseCase struct {
-	graphRepo graph.GraphRepository
+	graphRepo unweightedgraph.UnweightedGraphRepository
 }
 
-func NewNoCostGraphUseCase(graphRepo graph.GraphRepository) *NoCostGraphUseCase {
+func NewNoCostGraphUseCase(graphRepo unweightedgraph.UnweightedGraphRepository) *NoCostGraphUseCase {
 	return &NoCostGraphUseCase{
 		graphRepo: graphRepo,
 	}
 }
 
-func (g *NoCostGraphUseCase) MakeNewNoCostUnorderedGraph(vertexCount int, edges [][2]int) (graphDataBase.Graph, error) {
-	graph, err := graphDataBase.CreateNewUnorderedGraph(vertexCount, edges)
+func (g *NoCostGraphUseCase) MakeNewNoCostUnorderedGraph(vertexCount int, edges [][2]int) (graphdatabase.UnweightedGraph, error) {
+	graph, err := graphdatabase.CreateNewUnweightedUnorderedGraph(vertexCount, edges)
 	if err != nil {
-		var emptyGraph graphDataBase.Graph
+		var emptyGraph graphdatabase.UnweightedGraph
 		return emptyGraph, err
 	}
 	return graph, nil
 }
 
-func (g *NoCostGraphUseCase) MakeNewNoCostOrderedGraph(vertexCount int, edges [][2]int) (graphDataBase.Graph, error) {
-	graph, err := graphDataBase.CreateNewOrderedGraph(vertexCount, edges)
+func (g *NoCostGraphUseCase) MakeNewNoCostOrderedGraph(vertexCount int, edges [][2]int) (graphdatabase.UnweightedGraph, error) {
+	graph, err := graphdatabase.CreateNewUnweightedOrderedGraph(vertexCount, edges)
 	if err != nil {
-		var emptyGraph graphDataBase.Graph
+		var emptyGraph graphdatabase.UnweightedGraph
 		return emptyGraph, err
 	}
 	return graph, nil

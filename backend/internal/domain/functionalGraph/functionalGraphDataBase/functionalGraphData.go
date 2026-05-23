@@ -1,9 +1,7 @@
-package functionalGraphDataBase
-
-import()
+package functionalgraphdatabase
 
 type FunctionalGraph struct {
-	Edges []int
+	Edges    []int
 	NodeSize int
 }
 

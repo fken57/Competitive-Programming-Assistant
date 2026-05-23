@@ -1,12 +1,11 @@
-package graph
+package unweightedgraph
 
 import (
+	"backend/internal/domain/unweightedgraph/graphdatabase"
 	"container/list"
-	GraphDataStat "backend/internal/domain/graph/graphDataBase"
 )
 
-
-func BFS(graph GraphDataStat.Graph, start int) []int {
+func BFS(graph graphdatabase.UnweightedGraph, start int) []int {
 	visited := make([]bool, graph.VertexSize())
 	result := make([]int, graph.VertexSize())
 

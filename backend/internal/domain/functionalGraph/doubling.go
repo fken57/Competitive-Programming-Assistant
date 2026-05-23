@@ -1,7 +1,7 @@
-package functionalGraph
+package functionalgraph
 
 import (
-	functionalGraph "backend/internal/domain/functionalGraph/functionalGraphDataBase"
+	functionalgraph "backend/internal/domain/functionalgraph/functionalgraphdatabase"
 )
 
 type DoublingResult struct {
@@ -10,7 +10,7 @@ type DoublingResult struct {
 }
 
 // @brief functional graphのダブリングをする
-func FunctionalGraphDoubling(fg *functionalGraph.FunctionalGraph) *DoublingResult {
+func FunctionalGraphDoubling(fg *functionalgraph.FunctionalGraph) *DoublingResult {
 	doublingSize := 60
 	doublingResult := &DoublingResult{
 		doubling: make([][]int, doublingSize),

@@ -1,11 +1,11 @@
-package graph
+package unweightedgraph
 
-import(
-	"backend/internal/domain/graph/graphDataBase"
+import (
+	"backend/internal/domain/unweightedgraph/graphdatabase"
 	"container/list"
 )
 
-func IsTree(graph graphDataBase.Graph) bool {
+func IsTree(graph graphdatabase.UnweightedGraph) bool {
 	if graph.VertexSize() == 0 {
 		return true
 	}
@@ -17,7 +17,7 @@ func IsTree(graph graphDataBase.Graph) bool {
 	edgeCount := 0
 
 	for queue.Len() > 0 {
-		front := queue.Front();
+		front := queue.Front()
 		current := front.Value.(int)
 		queue.Remove(front)
 
