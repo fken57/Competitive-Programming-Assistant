@@ -1,4 +1,4 @@
-package graph
+package graphusecase
 
 import (
 	"backend/internal/domain/unweightedgraph"

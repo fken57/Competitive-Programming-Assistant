@@ -23,7 +23,7 @@ func (r *GraphFakeRepository) SaveUnweightedGraph(graph graphdatabase.Unweighted
 	return nil
 }
 
-func (r *GraphFakeRepository) GetUnweightedGraph(graphID int) (graphdatabase.UnweightedGraph, error) {
+func (r *GraphFakeRepository) GetUnweightedGraph(graphID string) (graphdatabase.UnweightedGraph, error) {
 	var empty graphdatabase.UnweightedGraph
 	return empty, nil
 }
