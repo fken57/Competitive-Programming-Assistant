@@ -5,12 +5,12 @@ import(
 	"container/list"
 )
 
-func IsTree(graph *graphDataBase.Graph) bool {
-	if graph.NodeSize == 0 {
+func IsTree(graph graphDataBase.Graph) bool {
+	if graph.VertexSize() == 0 {
 		return true
 	}
 
-	visited := make([]bool, graph.NodeSize)
+	visited := make([]bool, graph.VertexSize())
 	queue := list.New()
 	queue.PushBack(0)
 	visited[0] = true
@@ -21,16 +21,16 @@ func IsTree(graph *graphDataBase.Graph) bool {
 		current := front.Value.(int)
 		queue.Remove(front)
 
-		for _, neighbor := range graph.Edges[current] {
-			if !visited[neighbor.To] {
-				visited[neighbor.To] = true
-				queue.PushBack(neighbor.To)
+		for _, neighbor := range graph.NeighborEdges(current) {
+			if !visited[neighbor] {
+				visited[neighbor] = true
+				queue.PushBack(neighbor)
 				edgeCount++
 			}
 		}
 	}
 
-	return edgeCount == graph.NodeSize-1 && allVisited(visited)
+	return edgeCount == graph.VertexSize()-1 && allVisited(visited)
 }
 
 func allVisited(visited []bool) bool {

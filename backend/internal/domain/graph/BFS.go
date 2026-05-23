@@ -6,11 +6,11 @@ import (
 )
 
 
-func BFS(graph *GraphDataStat.Graph, start int) []int {
-	visited := make([]bool, graph.NodeSize)
-	result := make([]int, graph.NodeSize)
+func BFS(graph GraphDataStat.Graph, start int) []int {
+	visited := make([]bool, graph.VertexSize())
+	result := make([]int, graph.VertexSize())
 
-	if start < 0 || start >= graph.NodeSize {
+	if start < 0 || start >= graph.VertexSize() {
 		return []int{}
 	}
 
@@ -24,11 +24,11 @@ func BFS(graph *GraphDataStat.Graph, start int) []int {
 		current := front.Value.(int)
 		queue.Remove(front)
 
-		for _, neighbor := range graph.Edges[current] {
-			if !visited[neighbor.To] {
-				visited[neighbor.To] = true
-				queue.PushBack(neighbor.To)
-				result[neighbor.To] = result[current] + 1
+		for _, neighbor := range graph.NeighborEdges(current) {
+			if !visited[neighbor] {
+				visited[neighbor] = true
+				queue.PushBack(neighbor)
+				result[neighbor] = result[current] + 1
 			}
 		}
 	}

@@ -1,56 +1,58 @@
 package graphDataBase
 
-import()
+import(
+	"errors"
+)
 
-type Node struct{
-	ID int `json:"id" db:"id"`
-	Label string `json:"label" db:"label"`
-	Metadata map[string]interface{} `json:"metadata,omitempty" db:"metadata"`
+type Graph interface{
+	VertexSize() int
+	NeighborEdges(vertex int) []int
 }
 
-type Edge struct{
-	To int `json:"to" db:"to"`
-	Cost int `json:"cost" db:"cost"`
-	Label string `json:"label" db:"label"`
-	Metadata map[string]interface{} `json:"metadata,omitempty" db:"metadata"`
+type graph struct {
+	vertexSize int
+	edges      [][]int
 }
 
-type InputEdge struct{
-	From int `json:"from" db:"from"`
-	To int `json:"to" db:"to"`
-	Cost int `json:"cost" db:"cost"`
+func (g *graph) VertexSize() int {
+	return g.vertexSize
 }
 
-type Graph struct{
-	IsDirectional bool `json:"isDirectional" db:"isDirectional"`
-	NodeSize int `json:"nodeSize" db:"nodeSize"`
-	EdgeSize int `json:"edgeSize" db:"edgeSize"`
-	Nodes []Node `json:"nodes" db:"nodes"`
-	Edges [][]Edge `json:"edges" db:"edges"`
+func (g *graph) NeighborEdges(vertex int) []int {
+	return g.edges[vertex]
 }
 
-func NewGraph(nodeSize int, edgeSize int,inputEdges []InputEdge,isDirectional bool) *Graph {
-	return &Graph{
-		IsDirectional: isDirectional,
-		NodeSize: nodeSize,
-		EdgeSize: edgeSize,
+/*0indexedのグラフを生成します*/
+func CreateNewUnorderedGraph(vertexSize int, beforeProcessEdges [][2]int) (Graph, error) {
+	if(vertexSize <= 0){
+		return nil, errors.New("invalid vertex size")
 	}
+	g := &graph{
+		vertexSize: vertexSize,
+		edges : make([][]int, vertexSize),
+	}
+
+	for _ , edges := range beforeProcessEdges {
+		g.edges[edges[0]] = append(g.edges[edges[0]], edges[1])
+		g.edges[edges[1]] = append(g.edges[edges[1]], edges[0])	
+	}
+
+	return g, nil
 }
 
-func (g *Graph) AddEdge(inputEdges []InputEdge) {
-	for _, inputEdge := range inputEdges {
-		if len(g.Edges) <= inputEdge.From {
-			newEdges := make([][]Edge, inputEdge.From+1)
-			copy(newEdges, g.Edges)
-			g.Edges = newEdges
-		}
-
-		edge := Edge{
-			To: inputEdge.To,
-			Cost: inputEdge.Cost,
-			Label: "",
-			Metadata: nil,
-		}
-		g.Edges[inputEdge.From] = append(g.Edges[inputEdge.From], edge)
+/*0indexedの無向グラフを生成します*/
+func CreateNewOrderedGraph(vertexSize int, beforeProcessEdges [][2]int) (Graph, error) {	
+	if(vertexSize <= 0){
+		return nil, errors.New("invalid vertex size")
 	}
+	g := &graph{
+		vertexSize: vertexSize,
+		edges:      make([][]int, vertexSize),
+	}
+
+	for _ , edges := range beforeProcessEdges {
+		g.edges[edges[0]] = append(g.edges[edges[0]], edges[1])
+	}
+
+	return g, nil
 }
