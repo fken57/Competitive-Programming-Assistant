@@ -1,1 +1,65 @@
+# ==========================================
+# 1. Go (Backend) Settings
+# ==========================================
+# コンパイル済みのバイナリ（実行ファイル）
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+backend/main
+backend/backend
+
+# テストのカバー率などの出力
+*.out
+*.test
+*.prof
+
+# ==========================================
+# 2. Docker & Database Settings (最重要)
+# ==========================================
+# ローカルのポスグレデータフォルダ（もし以前の方式で残っていても絶対に無視）
+postgres_data/
+pgdata/
+
+# 環境変数ファイル（パスワードやAPIキーが書かれたファイル）
 .env
+.env.local
+.env.*.local
+
+# ==========================================
+# 3. Frontend (React / TypeScript) Settings
+# ==========================================
+# 依存パッケージ（巨大なのでGit管理してはいけない）
+node_modules/
+/frontend/node_modules/
+
+# ビルド生成物
+dist/
+build/
+.next/
+out/
+
+# ログファイル
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# 4. OS & IDE (Windows / VS Code) Settings
+# ==========================================
+# Windows特有のキャッシュファイル
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VS Codeの設定やローカル履歴
+.vscode/
+!.vscode/extensions.json # チームでおすすめの拡張機能を共有する場合のみ例外で許可
+.history/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
