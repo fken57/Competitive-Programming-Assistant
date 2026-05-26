@@ -57,3 +57,19 @@ func CreateNewUnweightedOrderedGraph(vertexSize int, beforeProcessEdges [][2]int
 
 	return g, nil
 }
+
+func CreateNewUnweightedNeighborListGraph(vertexSize int, neighbors [][]int) (UnweightedGraph, error) {
+	if vertexSize <= 0 {
+		return nil, errors.New("invalid vertex size")
+	}
+	g := &graph{
+		vertexSize: vertexSize,
+		edges:      make([][]int, vertexSize),
+	}
+
+	for i, neighborList := range neighbors {
+		g.edges[i] = append(g.edges[i], neighborList...)
+	}
+
+	return g, nil
+}

@@ -9,6 +9,11 @@ func BFS(graph graphdatabase.UnweightedGraph, start int) []int {
 	visited := make([]bool, graph.VertexSize())
 	result := make([]int, graph.VertexSize())
 
+	for i := 0; i < graph.VertexSize(); i++ {
+		visited[i] = false
+		result[i] = -1
+	}
+
 	if start < 0 || start >= graph.VertexSize() {
 		return []int{}
 	}

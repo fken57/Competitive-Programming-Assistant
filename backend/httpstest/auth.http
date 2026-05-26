@@ -1,0 +1,7 @@
+POST http://localhost:8080/apis/users/create
+Content-Type: application/json
+
+{
+  "username": "fken_55",
+  "password": "t-oka"
+}

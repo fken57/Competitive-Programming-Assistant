@@ -1,0 +1,174 @@
+package handler
+
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+
+	graphusecase "backend/internal/usecase/unweightedgraph"
+)
+
+type NoCostGraphHandler struct {
+	noCostGraphUseCase *graphusecase.NoCostGraphUseCase
+}
+
+type GraphResponse struct {
+	VertexSize int     `json:"vertex_size"`
+	Edges      [][]int `json:"edges"`
+}
+
+func NewNoCostGraphHandler(noCostGraphUseCase *graphusecase.NoCostGraphUseCase) *NoCostGraphHandler {
+	return &NoCostGraphHandler{
+		noCostGraphUseCase: noCostGraphUseCase,
+	}
+}
+
+func (h *NoCostGraphHandler) MakeNewNoCostUnorderedGraph(c echo.Context) error {
+	var req NoCostGraphRequest
+
+	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+
+	for i := 0; i < len(req.Edges); i++ {
+		for j := 0; j < len(req.Edges[i]); j++ {
+			req.Edges[i][j]--
+		}
+	}
+
+	graph, err := h.noCostGraphUseCase.MakeNewNoCostUnorderedGraph(req.VertexCount, req.Edges)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	if graph == nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "Graph not found"})
+	}
+
+	res := GraphResponse{
+		VertexSize: graph.VertexSize(),
+		Edges:      [][]int{},
+	}
+
+	for i := 0; i < graph.VertexSize(); i++ {
+		res.Edges = append(res.Edges, graph.NeighborEdges(i))
+	}
+
+	for i := 0; i < graph.VertexSize(); i++ {
+		for j := 0; j < len(res.Edges[i]); j++ {
+			res.Edges[i][j]++
+		}
+	}
+
+	// 3. 詰め替えたDTOをJSONにして返す
+	return c.JSON(http.StatusCreated, map[string]interface{}{"graph": res})
+}
+
+func (h *NoCostGraphHandler) MakeNewNoCostOrderedGraph(c echo.Context) error {
+	var req NoCostGraphRequest
+
+	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+
+	for i := 0; i < len(req.Edges); i++ {
+		for j := 0; j < len(req.Edges[i]); j++ {
+			req.Edges[i][j]--
+		}
+	}
+
+	graph, err := h.noCostGraphUseCase.MakeNewNoCostOrderedGraph(req.VertexCount, req.Edges)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	if graph == nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "Graph not found"})
+	}
+
+	res := GraphResponse{
+		VertexSize: graph.VertexSize(),
+		Edges:      [][]int{},
+	}
+
+	for i := 0; i < graph.VertexSize(); i++ {
+		res.Edges = append(res.Edges, graph.NeighborEdges(i))
+	}
+
+	for i := 0; i < graph.VertexSize(); i++ {
+		for j := 0; j < len(res.Edges[i]); j++ {
+			res.Edges[i][j]++
+		}
+	}
+
+	// 3. 詰め替えたDTOをJSONにして返す
+	return c.JSON(http.StatusCreated, map[string]interface{}{"graph": res})
+}
+
+func (h *NoCostGraphHandler) ExecuteBFS(c echo.Context) error {
+	var req NoCostGraphNeighborListRequest
+
+	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+
+	for i := 0; i < len(req.Neighbors); i++ {
+		for j := 0; j < len(req.Neighbors[i]); j++ {
+			req.Neighbors[i][j]--
+		}
+	}
+
+	graph, err := h.noCostGraphUseCase.MakeNewNoCostNeighborListGraph(req.VertexCount, req.Neighbors)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	startVertex := req.StartVertex - 1
+
+	if graph == nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "Graph not found"})
+	}
+
+	visitedVertices, err := h.noCostGraphUseCase.ExecuteBFS(graph, startVertex)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, BFSResponse{
+		StartVertex:     startVertex + 1,
+		VisitedVertices: visitedVertices,
+	})
+}
+
+func (h *NoCostGraphHandler) ExecuteIsBinaryTree(c echo.Context) error {
+	var req NoCostGraphNeighborListRequest
+
+	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+
+	for i := 0; i < len(req.Neighbors); i++ {
+		for j := 0; j < len(req.Neighbors[i]); j++ {
+			req.Neighbors[i][j]--
+		}
+	}
+
+	graph, err := h.noCostGraphUseCase.MakeNewNoCostNeighborListGraph(req.VertexCount, req.Neighbors)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	if graph == nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "Graph not found"})
+	}
+
+	isBinaryTree, err := h.noCostGraphUseCase.ExecuteIsBinaryTree(graph)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, IsBinaryTreeResponse{
+		IsBinaryTree: isBinaryTree,
+	})
+}

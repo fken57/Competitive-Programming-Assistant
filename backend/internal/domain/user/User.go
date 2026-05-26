@@ -8,8 +8,8 @@ import (
 
 type User struct {
 	id           string       `db:"id" `
-	name         string    `db:"name"`
-	passwordHash string    `db:"password" `
+	name         string    `db:"username"`
+	passwordHash string    `db:"password_hash" `
 	createdAt    time.Time `db:"created_at"`
 }
 
@@ -40,10 +40,10 @@ func (u *User) CheckPassword(password string) bool {
 }
 
 type UserPlainSnapshot struct {
-	ID           string
-	Username     string
-	PasswordHash string // この一瞬だけ、大文字のフィールドに値を詰めて外に出す
-	CreatedAt    time.Time
+	ID           string `db:"id"`
+	Username     string `db:"username"`
+	PasswordHash string `db:"password_hash"`
+	CreatedAt    time.Time `db:"created_at"`
 }
 
 // ToSnapshot: インフラ層（DB保存）のためだけに、内部データを1枚のプレーンな写真（構造体）にして書き出す

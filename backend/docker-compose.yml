@@ -3,10 +3,14 @@ services:
     image: postgres:15-alpine
     restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: myapp
+      POSTGRES_USER: ken57
+      POSTGRES_PASSWORD: post1810
+      POSTGRES_DB: authdb
     ports:
       - "5432:5432"
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - cpa_postgres_data:/var/lib/postgresql/data # 💡 「./」を無くして、ボリューム名にする
+
+# 💡 一番下に、Dockerに管理を任せるボリュームの定義を追加する
+volumes:
+  cpa_postgres_data:

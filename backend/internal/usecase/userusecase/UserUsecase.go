@@ -3,8 +3,10 @@ package userusecase
 import (
 	"backend/internal/domain/user"
 	"context"
-	"golang.org/x/crypto/bcrypt"
+	"errors"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserUsecase struct {
@@ -28,6 +30,17 @@ func (u *UserUsecase) RegisterUser(ctx context.Context, username string, rawPass
 		return err
 	}
 	return nil
+}
+
+func (u *UserUsecase) Login(ctx context.Context, username string, password string) (*user.User, error) {
+	user, err := u.userRepository.FindByUsername(ctx, username)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+	if !user.CheckPassword(password) {
+		return nil, errors.New("invalid password")
+	}
+	return user, nil
 }
 
 func (u *UserUsecase) GetUserByID(ctx context.Context, id string) (*user.User, error) {
