@@ -10,7 +10,7 @@ func TopologicalSort(graph graphdatabase.UnweightedGraph) ([]int, error) {
 		//return nil, err
 	//}
 	// Implementation for topological sort would go here
-	
+	return nil, nil
 }
 
 func GetVerticalDegree(graph graphdatabase.	UnweightedGraph) ([]int, error) {

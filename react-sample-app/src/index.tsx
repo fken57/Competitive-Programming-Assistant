@@ -1,14 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import  Hyperlink_1 from './hyperlink/hyperlink'
 import App from './App';
+import './assets/styles/index.css';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 root.render(
   <React.StrictMode>
     <App />
-    <Hyperlink_1 href="https://example.com">Example Link</Hyperlink_1>
   </React.StrictMode>
 );
 

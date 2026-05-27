@@ -32,12 +32,6 @@ func (h *NoCostGraphHandler) MakeNewNoCostUnorderedGraph(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
-	for i := 0; i < len(req.Edges); i++ {
-		for j := 0; j < len(req.Edges[i]); j++ {
-			req.Edges[i][j]--
-		}
-	}
-
 	graph, err := h.noCostGraphUseCase.MakeNewNoCostUnorderedGraph(req.VertexCount, req.Edges)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -56,12 +50,6 @@ func (h *NoCostGraphHandler) MakeNewNoCostUnorderedGraph(c echo.Context) error {
 		res.Edges = append(res.Edges, graph.NeighborEdges(i))
 	}
 
-	for i := 0; i < graph.VertexSize(); i++ {
-		for j := 0; j < len(res.Edges[i]); j++ {
-			res.Edges[i][j]++
-		}
-	}
-
 	// 3. 詰め替えたDTOをJSONにして返す
 	return c.JSON(http.StatusCreated, map[string]interface{}{"graph": res})
 }
@@ -71,12 +59,6 @@ func (h *NoCostGraphHandler) MakeNewNoCostOrderedGraph(c echo.Context) error {
 
 	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-	}
-
-	for i := 0; i < len(req.Edges); i++ {
-		for j := 0; j < len(req.Edges[i]); j++ {
-			req.Edges[i][j]--
-		}
 	}
 
 	graph, err := h.noCostGraphUseCase.MakeNewNoCostOrderedGraph(req.VertexCount, req.Edges)
@@ -114,30 +96,22 @@ func (h *NoCostGraphHandler) ExecuteBFS(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
-	for i := 0; i < len(req.Neighbors); i++ {
-		for j := 0; j < len(req.Neighbors[i]); j++ {
-			req.Neighbors[i][j]--
-		}
-	}
-
 	graph, err := h.noCostGraphUseCase.MakeNewNoCostNeighborListGraph(req.VertexCount, req.Neighbors)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	startVertex := req.StartVertex - 1
-
 	if graph == nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "Graph not found"})
 	}
 
-	visitedVertices, err := h.noCostGraphUseCase.ExecuteBFS(graph, startVertex)
+	visitedVertices, err := h.noCostGraphUseCase.ExecuteBFS(graph, req.StartVertex)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, BFSResponse{
-		StartVertex:     startVertex + 1,
+		StartVertex:     req.StartVertex,
 		VisitedVertices: visitedVertices,
 	})
 }
@@ -147,12 +121,6 @@ func (h *NoCostGraphHandler) ExecuteIsBinaryTree(c echo.Context) error {
 
 	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-	}
-
-	for i := 0; i < len(req.Neighbors); i++ {
-		for j := 0; j < len(req.Neighbors[i]); j++ {
-			req.Neighbors[i][j]--
-		}
 	}
 
 	graph, err := h.noCostGraphUseCase.MakeNewNoCostNeighborListGraph(req.VertexCount, req.Neighbors)
@@ -178,13 +146,6 @@ func (h *NoCostGraphHandler) ExecuteIsBinaryTree(c echo.Context) error {
 			GroupOne:     nil,
 			GroupTwo:     nil,
 		})
-	}
-
-	for i := 0; i < len(groups1); i++ {
-		groups1[i]++
-	}
-	for i := 0; i < len(groups2); i++ {
-		groups2[i]++
 	}
 
 	return c.JSON(http.StatusOK, IsBinaryTreeResponse{
