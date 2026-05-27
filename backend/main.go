@@ -58,9 +58,12 @@ func main() {
 	g := e.Group("/apis")
 
 	g.POST("/graphs/unweighted/unordered", noCostGraphHandler.MakeNewNoCostUnorderedGraph)
+	g.POST("/graphs/unweighted/unordered/isbinarytree", noCostGraphHandler.ExecuteIsBinaryTree)
+
 	g.POST("/graphs/unweighted/ordered", noCostGraphHandler.MakeNewNoCostOrderedGraph)
-	
+
 	g.POST("/graphs/unweighted/BFS", noCostGraphHandler.ExecuteBFS)
+
 
 	g.POST("/users/create", userAuthHandler.Register)
 

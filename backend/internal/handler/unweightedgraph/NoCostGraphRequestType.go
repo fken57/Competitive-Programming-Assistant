@@ -15,3 +15,9 @@ type BFSResponse struct {
 	StartVertex     int   `json:"start_vertex"`
 	VisitedVertices []int `json:"visited_vertices"`
 }
+
+type IsBinaryTreeResponse struct {
+	IsBinaryTree bool `json:"is_binary_tree"`
+	GroupOne []int `json:"group_one"`
+	GroupTwo []int `json:"group_two"`
+}

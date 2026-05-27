@@ -49,10 +49,25 @@ func (g *NoCostGraphUseCase) ExecuteBFS(graph graphdatabase.UnweightedGraph, sta
 	return visitedVertices, nil
 }
 
-func (g *NoCostGraphUseCase) ExecuteIsBinaryTree(graph graphdatabase.UnweightedGraph) (isBinaryTree bool, error) {
+func (g *NoCostGraphUseCase) ExecuteIsBinaryTree(graph graphdatabase.UnweightedGraph) ( bool,  []int,[]int, error) {
 	if !unweightedgraph.IsUndirectedGraph(graph) {
-		return false, errors.New("the graph is not an undirected graph")
+		return false, nil, nil, errors.New("the graph is not an undirected graph")
 	}
 	isBinaryTree := unweightedgraph.IsBinaryGraph(graph)
-	return isBinaryTree, nil
+
+	var groups1, group2 []int
+
+	if(!isBinaryTree.IsBinary) {
+		return false , nil ,nil, nil
+	}
+
+	for i := 0; i < graph.VertexSize(); i++ {
+		if isBinaryTree.Colors[i] == 0 {
+			groups1 = append(groups1, i)
+		} else {
+			group2 = append(group2, i)
+		}
+	}
+
+	return isBinaryTree.IsBinary, groups1, group2, nil
 }
