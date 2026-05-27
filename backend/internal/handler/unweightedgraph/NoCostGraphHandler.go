@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
 	"errors"
+
+	"github.com/labstack/echo/v4"
 
 	graphusecase "backend/internal/usecase/unweightedgraph"
 )
@@ -134,13 +135,13 @@ func (h *NoCostGraphHandler) ExecuteIsBinaryTree(c echo.Context) error {
 
 	isBinaryTree, groups1, groups2, err := h.noCostGraphUseCase.ExecuteIsBinaryTree(graph)
 	if err != nil {
-		if(err == errors.New("the graph is not an undirected graph")) {
+		if err == errors.New("the graph is not an undirected graph") {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	if(!isBinaryTree) {
+	if !isBinaryTree {
 		return c.JSON(http.StatusOK, IsBinaryTreeResponse{
 			IsBinaryTree: false,
 			GroupOne:     nil,

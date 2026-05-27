@@ -1,6 +1,6 @@
 package unweightedgraph
 
-import(
+import (
 	"backend/internal/domain/unweightedgraph/graphdatabase"
 )
 
