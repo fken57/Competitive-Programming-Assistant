@@ -155,3 +155,31 @@ func (h *NoCostGraphHandler) ExecuteIsBinaryTree(c echo.Context) error {
 		GroupTwo:     groups2,
 	})
 }
+
+func (h *NoCostGraphHandler) GetTreeDistance(c echo.Context) error {
+	var req NoCostGraphNeighborListRequest
+
+	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+
+	graph, err := h.noCostGraphUseCase.MakeNewNoCostNeighborListGraph(req.VertexCount, req.Neighbors)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	if graph == nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "Graph not found"})
+	}
+
+	treeDistance, err := h.noCostGraphUseCase.GetTreeDistance(graph)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, TreeDistanceResponse{
+		TreeDir: treeDistance.TreeDir,
+		Vertex1: treeDistance.Vertex1,
+		Vertex2: treeDistance.Vertex2,
+	})
+}

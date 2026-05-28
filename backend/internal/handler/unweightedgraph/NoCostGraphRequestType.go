@@ -21,3 +21,9 @@ type IsBinaryTreeResponse struct {
 	GroupOne []int `json:"group_one"`
 	GroupTwo []int `json:"group_two"`
 }
+
+type TreeDistanceResponse struct {
+	TreeDir int `json:"tree_dir"`
+	Vertex1 int `json:"vertex1"`
+	Vertex2 int `json:"vertex2"`
+}

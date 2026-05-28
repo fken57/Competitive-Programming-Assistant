@@ -4,8 +4,8 @@ Content-Type: application/json
 {
   "vertex_count": 3,
   "neighbors": [
-    [2],
     [1],
+    [0],
     [] 
   ]
 }

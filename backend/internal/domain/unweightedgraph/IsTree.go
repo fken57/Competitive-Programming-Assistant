@@ -2,42 +2,39 @@ package unweightedgraph
 
 import (
 	"backend/internal/domain/unweightedgraph/graphdatabase"
-	"container/list"
 )
 
+// IsTree checks whether an undirected simple graph is a tree.
+// It returns true iff the graph is connected and contains no cycles.
 func IsTree(graph graphdatabase.UnweightedGraph) bool {
-	if graph.VertexSize() == 0 {
+	n := graph.VertexSize()
+	if n == 0 {
 		return true
 	}
 
-	visited := make([]bool, graph.VertexSize())
-	queue := list.New()
-	queue.PushBack(0)
+	visited := make([]bool, n)
+
+	type pair struct{ cur, parent int }
+	stack := []pair{{0, -1}}
 	visited[0] = true
-	edgeCount := 0
+	visitedCount := 0
 
-	for queue.Len() > 0 {
-		front := queue.Front()
-		current := front.Value.(int)
-		queue.Remove(front)
+	for len(stack) > 0 {
+		p := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		visitedCount++
 
-		for _, neighbor := range graph.NeighborEdges(current) {
-			if !visited[neighbor] {
-				visited[neighbor] = true
-				queue.PushBack(neighbor)
-				edgeCount++
+		for _, nb := range graph.NeighborEdges(p.cur) {
+			if !visited[nb] {
+				visited[nb] = true
+				stack = append(stack, pair{nb, p.cur})
+			} else if nb != p.parent {
+				// visited neighbor that's not the parent => cycle
+				return false
 			}
 		}
 	}
 
-	return edgeCount == graph.VertexSize()-1 && allVisited(visited)
-}
-
-func allVisited(visited []bool) bool {
-	for _, v := range visited {
-		if !v {
-			return false
-		}
-	}
-	return true
+	// connected iff we visited all vertices
+	return visitedCount == n
 }

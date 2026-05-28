@@ -59,6 +59,7 @@ func main() {
 
 	g.POST("/graphs/unweighted/unordered", noCostGraphHandler.MakeNewNoCostUnorderedGraph)
 	g.POST("/graphs/unweighted/unordered/isbinarytree", noCostGraphHandler.ExecuteIsBinaryTree)
+	g.POST("/graphs/unweighted/unordered/treedistance", noCostGraphHandler.GetTreeDistance)
 
 	g.POST("/graphs/unweighted/ordered", noCostGraphHandler.MakeNewNoCostOrderedGraph)
 

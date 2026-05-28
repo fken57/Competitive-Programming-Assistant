@@ -1,12 +1,12 @@
-POST http://localhost:8080/apis/graphs/unweighted/BFS
+POST http://localhost:8080/apis/graphs/unweighted/ordered
 Content-Type: application/json
 
 {
     "vertex_count": 3,
     "neighbors": [
-        [2,3],
-        [3,1],
-        [1,2]
+        [1,2],
+        [2,0],
+        [0,1]
     ],
-    "start_vertex": 1
+    "start_vertex": 0
 }

@@ -71,3 +71,14 @@ func (g *NoCostGraphUseCase) ExecuteIsBinaryTree(graph graphdatabase.UnweightedG
 
 	return isBinaryTree.IsBinary, groups1, group2, nil
 }
+
+func (g *NoCostGraphUseCase) GetTreeDistance(graph graphdatabase.UnweightedGraph) (unweightedgraph.TreeDistance, error) {
+	if !unweightedgraph.IsUndirectedGraph(graph) {
+		return unweightedgraph.TreeDistance{}, errors.New("the graph is not an undirected graph")
+	}
+	if !unweightedgraph.IsTree(graph) {
+		return unweightedgraph.TreeDistance{}, errors.New("the graph is not a tree")
+	}
+	treeDistance := unweightedgraph.GetTreeDistance(graph)
+	return treeDistance, nil
+}
