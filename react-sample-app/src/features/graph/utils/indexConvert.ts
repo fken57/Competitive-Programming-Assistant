@@ -15,5 +15,3 @@ export class NeighborListConvert {
         return neighbors.map(n => zeroToOneIndexConvert.convert(n));
     }
 }
-
-export class 

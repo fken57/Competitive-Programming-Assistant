@@ -1,3 +1,1 @@
-type NoCostGraphData interface={
-    
-}
+export type NoCostGraphData = Record<string, never>;

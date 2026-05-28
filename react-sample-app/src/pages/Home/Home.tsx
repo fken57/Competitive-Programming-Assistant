@@ -1,7 +1,11 @@
 import Hyperlink from '../../components/Hyperlink/Hyperlink';
 import logo from '../../assets/logo.svg';
 
-function Home() {
+type HomeProps = {
+  onOpenGraph: () => void;
+};
+
+function Home({ onOpenGraph }: HomeProps) {
   return (
     <main className="home-page">
       <section className="home-hero">
@@ -12,6 +16,9 @@ function Home() {
             共通部品、機能別コンポーネント、画面、型定義を役割ごとに分離するための土台です。
           </p>
           <div className="home-actions">
+            <button className="home-link home-link--primary home-link--button" type="button" onClick={onOpenGraph}>
+              Graph API を開く
+            </button>
             <Hyperlink className="home-link home-link--primary" href="https://react.dev">
               React Docs
             </Hyperlink>
@@ -29,7 +36,7 @@ function Home() {
             </article>
             <article className="home-card">
               <h2>graph</h2>
-              <p>BFS や可視化など、グラフ系のロジックをまとめます。</p>
+              <p>BFS、木判定、二部グラフ判定などのAPIを試せます。</p>
             </article>
             <article className="home-card">
               <h2>config</h2>
