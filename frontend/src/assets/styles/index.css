@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+  /* Harmonious Color Palette */
+  --bg-deep: #030712;
+  --bg-dark: #090d1a;
+  --panel-glass: rgba(15, 23, 42, 0.65);
+  --panel-glass-hover: rgba(22, 34, 57, 0.8);
+  --border-glass: rgba(148, 163, 184, 0.12);
+  --border-glass-glow: rgba(45, 212, 191, 0.35);
+  
+  /* Neon Functional Accents */
+  --color-primary: #2dd4bf;      /* Neon Teal */
+  --color-primary-glow: rgba(45, 212, 191, 0.3);
+  --color-secondary: #f43f5e;    /* Neon Rose/Pink (Bipartite group 1, error) */
+  --color-secondary-glow: rgba(244, 63, 94, 0.3);
+  --color-highlight: #fbbf24;    /* Gold/Amber (LCA, diameter, warning) */
+  --color-highlight-glow: rgba(251, 191, 36, 0.3);
+  --color-accent: #6366f1;       /* Neon Indigo/Violet (Bipartite group 2, string helper) */
+  --color-accent-glow: rgba(99, 102, 241, 0.3);
+  
+  /* Text states */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  /* Transition timings */
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Shadows */
+  --shadow-premium: 0 20px 50px -12px rgba(2, 6, 23, 0.6);
+  --shadow-glow-teal: 0 0 20px rgba(45, 212, 191, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  min-height: 100vh;
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+/* Custom Webkit Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.16);
+  border-radius: 99px;
+  border: 2px solid var(--bg-deep);
+  transition: var(--transition-smooth);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 212, 191, 0.4);
+}
+
+code, pre, .code-font {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+}
+
+/* Keyframe Animations */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-teal {
+  0%, 100% { box-shadow: 0 0 15px rgba(45, 212, 191, 0.2); }
+  50% { box-shadow: 0 0 25px rgba(45, 212, 191, 0.45); }
+}
+
+@keyframes glow-glow {
+  0%, 100% { filter: drop-shadow(0 0 5px var(--color-primary-glow)); }
+  50% { filter: drop-shadow(0 0 15px rgba(45, 212, 191, 0.6)); }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
