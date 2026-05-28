@@ -6,24 +6,20 @@ export type CanvasNode = {
   y: number;
   vx: number;
   vy: number;
-  label?: string;
-  color?: string;
 };
 
 export type CanvasEdge = {
   from: number;
   to: number;
-  weight?: number;
 };
 
 type GraphCanvasProps = {
   vertexCount: number;
   edges: CanvasEdge[];
   isDirected: boolean;
-  isWeighted: boolean;
   highlightedNodes?: Set<number>;
-  highlightedEdges?: Set<string>; // format: "from-to"
-  nodeColors?: Map<number, string>; // map node index -> color string
+  highlightedEdges?: Set<string>;
+  nodeColors?: Map<number, string>;
   bfsOrder?: number[];
   onClickNode?: (nodeId: number) => void;
 };
@@ -32,7 +28,6 @@ export default function GraphCanvas({
   vertexCount,
   edges,
   isDirected,
-  isWeighted,
   highlightedNodes = new Set(),
   highlightedEdges = new Set(),
   nodeColors = new Map(),
@@ -57,7 +52,6 @@ export default function GraphCanvas({
 
     const newNodes: CanvasNode[] = [];
     for (let i = 0; i < vertexCount; i++) {
-      // Circle layout with slight random offset to prevent overlap
       const angle = (i * 2 * Math.PI) / Math.max(1, vertexCount);
       newNodes.push({
         id: i,
@@ -71,14 +65,13 @@ export default function GraphCanvas({
     nodesRef.current = newNodes;
   }, [vertexCount]);
 
-  // Spring Physics & Draw Loop
+  // Spring Physics & Rendering Loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Handle high DPI displays
     const resizeCanvas = () => {
       const rect = canvas.getBoundingClientRect();
       canvas.width = rect.width * window.devicePixelRatio;
@@ -92,13 +85,13 @@ export default function GraphCanvas({
       const width = canvas.width / window.devicePixelRatio;
       const height = canvas.height / window.devicePixelRatio;
 
-      // Spring Physics Parameters
-      const kRepulsion = 1500; // Coulomb repulsion constant
-      const kSpring = 0.06;   // Spring stiffness constant
-      const restLength = 90; // Natural spring rest length
-      const damping = 0.82;   // Velocity damping factor
+      // Force variables
+      const kRepulsion = 1500;
+      const kSpring = 0.06;
+      const restLength = 90;
+      const damping = 0.82;
 
-      // Apply Repulsion Forces (between all nodes)
+      // 1. Repulsion forces (between all nodes)
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
           const n1 = nodes[i];
@@ -107,12 +100,10 @@ export default function GraphCanvas({
           const dy = n2.y - n1.y;
           const dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
-          // Repulsion force is inversely proportional to square of distance
           const force = kRepulsion / (dist * dist);
           const fx = (dx / dist) * force;
           const fy = (dy / dist) * force;
 
-          // Repel each other
           if (isDraggingRef.current !== n1.id) {
             n1.vx -= fx;
             n1.vy -= fy;
@@ -124,7 +115,7 @@ export default function GraphCanvas({
         }
       }
 
-      // Apply Spring Forces (along edges)
+      // 2. Spring forces (along parsed edges)
       for (const edge of edges) {
         const u = nodes.find((n) => n.id === edge.from);
         const v = nodes.find((n) => n.id === edge.to);
@@ -134,7 +125,6 @@ export default function GraphCanvas({
         const dy = v.y - u.y;
         const dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
-        // Spring force (Hooke's Law: F = -k * x)
         const displacement = dist - restLength;
         const force = kSpring * displacement;
         const fx = (dx / dist) * force;
@@ -150,7 +140,7 @@ export default function GraphCanvas({
         }
       }
 
-      // Gravity towards center (prevents nodes floating off screen)
+      // 3. Gravity towards center
       const centerX = width / 2;
       const centerY = height / 2;
       for (const node of nodes) {
@@ -161,7 +151,7 @@ export default function GraphCanvas({
         node.vy += dy * 0.005;
       }
 
-      // Update positions and handle boundary collisions
+      // 4. Update coordinates and boundary collisions
       const padding = 24;
       for (const node of nodes) {
         if (isDraggingRef.current === node.id) continue;
@@ -172,17 +162,16 @@ export default function GraphCanvas({
         node.x += node.vx;
         node.y += node.vy;
 
-        // Bounce/clamp boundaries
         if (node.x < padding) { node.x = padding; node.vx = 0; }
         if (node.x > width - padding) { node.x = width - padding; node.vx = 0; }
         if (node.y < padding) { node.y = padding; node.vy = 0; }
         if (node.y > height - padding) { node.y = height - padding; node.vy = 0; }
       }
 
-      // --- RENDERING ---
+      // 5. Draw Canvas elements
       ctx.clearRect(0, 0, width, height);
 
-      // Draw Edges
+      // --- DRAW EDGES ---
       for (const edge of edges) {
         const u = nodes.find((n) => n.id === edge.from);
         const v = nodes.find((n) => n.id === edge.to);
@@ -197,7 +186,7 @@ export default function GraphCanvas({
         ctx.lineTo(v.x, v.y);
 
         if (isHighlighted) {
-          ctx.strokeStyle = '#fbbf24'; // Neon Amber/Gold
+          ctx.strokeStyle = '#fbbf24'; // Amber Gold
           ctx.lineWidth = 3.5;
           ctx.shadowColor = 'rgba(251, 191, 36, 0.4)';
           ctx.shadowBlur = 10;
@@ -207,32 +196,15 @@ export default function GraphCanvas({
           ctx.shadowBlur = 0;
         }
         ctx.stroke();
-        ctx.shadowBlur = 0; // reset
+        ctx.shadowBlur = 0;
 
         // Draw arrow if directed
         if (isDirected) {
-          drawArrow(ctx, u.x, u.y, v.x, v.y, 16);
-        }
-
-        // Draw edge weights
-        if (isWeighted && edge.weight !== undefined) {
-          const midX = (u.x + v.x) / 2;
-          const midY = (u.y + v.y) / 2;
-          ctx.save();
-          // Draw a small background pill for readability
-          ctx.fillStyle = 'rgba(9, 13, 26, 0.8)';
-          ctx.fillRect(midX - 12, midY - 10, 24, 18);
-          
-          ctx.fillStyle = isHighlighted ? '#fbbf24' : '#94a3b8';
-          ctx.font = 'bold 0.8rem JetBrains Mono';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(edge.weight.toString(), midX, midY);
-          ctx.restore();
+          drawArrow(ctx, u.x, u.y, v.x, v.y, 18);
         }
       }
 
-      // Draw Nodes
+      // --- DRAW NODES ---
       const nodeRadius = 18;
       for (const node of nodes) {
         const isHighlighted = highlightedNodes.has(node.id);
@@ -241,13 +213,12 @@ export default function GraphCanvas({
         ctx.beginPath();
         ctx.arc(node.x, node.y, nodeRadius, 0, 2 * Math.PI);
 
-        // Core fill & stroke
         ctx.fillStyle = 'rgba(9, 13, 26, 0.9)';
         ctx.fill();
 
         ctx.lineWidth = 3;
         if (isHighlighted) {
-          ctx.strokeStyle = '#fbbf24'; // Neon gold glow
+          ctx.strokeStyle = '#fbbf24'; // Gold highlight
           ctx.shadowColor = 'rgba(251, 191, 36, 0.5)';
           ctx.shadowBlur = 12;
         } else if (customColor) {
@@ -255,20 +226,20 @@ export default function GraphCanvas({
           ctx.shadowColor = customColor;
           ctx.shadowBlur = 6;
         } else {
-          ctx.strokeStyle = '#2dd4bf'; // Neon primary teal
+          ctx.strokeStyle = '#2dd4bf'; // Teal primary
           ctx.shadowBlur = 0;
         }
         ctx.stroke();
-        ctx.shadowBlur = 0; // reset
+        ctx.shadowBlur = 0;
 
-        // Draw text indices
+        // Draw node ID text
         ctx.fillStyle = isHighlighted ? '#fbbf24' : '#f8fafc';
         ctx.font = 'bold 0.95rem Outfit';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(node.id.toString(), node.x, node.y);
 
-        // Draw BFS traversal numbers if applicable
+        // BFS Visit Indices overlay
         const bfsIndex = bfsOrder.indexOf(node.id);
         if (bfsIndex !== -1) {
           ctx.save();
@@ -291,9 +262,9 @@ export default function GraphCanvas({
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [edges, isDirected, isWeighted, highlightedNodes, highlightedEdges, nodeColors, bfsOrder]);
+  }, [edges, isDirected, highlightedNodes, highlightedEdges, nodeColors, bfsOrder]);
 
-  // Visual Arrow Helper
+  // Directed arrow visual helper
   const drawArrow = (
     ctx: CanvasRenderingContext2D,
     fromX: number,
@@ -306,7 +277,6 @@ export default function GraphCanvas({
     const arrowLength = 10;
     const arrowWidth = 6;
 
-    // Adjust target to be on the node's perimeter instead of center
     const targetX = toX - nodeRadius * Math.cos(angle);
     const targetY = toY - nodeRadius * Math.sin(angle);
 
@@ -327,7 +297,6 @@ export default function GraphCanvas({
     ctx.restore();
   };
 
-  // Draggable Interactivity Mouse Listeners
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -336,11 +305,10 @@ export default function GraphCanvas({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // Detect click inside node radius
     const clickedNode = nodesRef.current.find((node) => {
       const dx = node.x - x;
       const dy = node.y - y;
-      return Math.sqrt(dx * dx + dy * dy) < 22; // match radius with a click margin
+      return Math.sqrt(dx * dx + dy * dy) < 22;
     });
 
     if (clickedNode) {
@@ -383,7 +351,7 @@ export default function GraphCanvas({
       />
       <div className="visualizer-instructions">
         <span>🖱️ ノードをドラッグしてレイアウトを変更</span>
-        <span>👉 ノードをクリックして、LCAやダブリング起点を選択</span>
+        <span>👉 ノードをクリックして、BFSの開始頂点を選択</span>
       </div>
     </div>
   );
