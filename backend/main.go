@@ -62,7 +62,7 @@ func main() {
 	g.POST("/graphs/unweighted/unordered/treedistance", noCostGraphHandler.GetTreeDistance)
 
 	g.POST("/graphs/unweighted/ordered", noCostGraphHandler.MakeNewNoCostOrderedGraph)
-
+	g.POST("/graphs/unweighted/ordered/topologicalsort", noCostGraphHandler.TopologicalSort)
 	g.POST("/graphs/unweighted/BFS", noCostGraphHandler.ExecuteBFS)
 
 

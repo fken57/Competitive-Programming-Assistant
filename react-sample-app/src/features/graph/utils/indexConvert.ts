@@ -10,10 +10,8 @@ export class oneToZeroIndexConvert {
     }
 }
 
-export class NeighborListConvert {
-    static convert(neighbors: number[]): number[] {
-        return neighbors.map(n => zeroToOneIndexConvert.convert(n));
+export class EdgeListToNeighborListConvert {
+    static convert(edgeList: [number, number][]): number[][] {
+        return [];
     }
 }
-
-export class 

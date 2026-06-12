@@ -1,0 +1,12 @@
+POST http://localhost:8080/apis/graphs/unweighted/ordered/topologicalsort
+Content-Type: application/json
+
+{
+  "vertex_count": 4,
+  "neighbors": [
+    [1,2],
+    [3],
+    [],
+    [2]
+  ]
+}

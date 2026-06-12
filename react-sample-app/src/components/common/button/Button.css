@@ -1,0 +1,17 @@
+.my-beautiful-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  /* Reactから渡された '--btn-color' を背景色にする */
+  background-color: var(--btn-color); 
+}
+
+/* ホバー時は、明度などを少し変える（フィルターを使うとどんな色にも対応できて便利です） */
+.my-beautiful-button:hover {
+  filter: brightness(0.9); /* 元の色より少しだけ暗くする */
+  transform: translateY(-2px);
+}

@@ -1,3 +1,2 @@
-type NoCostGraphData interface={
-    
+export interface NoCostGraphData {
 }

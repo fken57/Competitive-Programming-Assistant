@@ -1,0 +1,23 @@
+.header-container{
+background-color: #000000;
+  border-bottom: 1px solid #020202;
+  padding: 16px 24px;
+}
+
+.header-alignment{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+}
+
+.header-title{
+    font-size: 32px;
+    margin:0;
+    color: #ffffff;
+    font-family: Noto Serif JP, sans-serif;
+}
+
+.header-button-alignment{
+    display:flex;
+    gap:12px;
+}

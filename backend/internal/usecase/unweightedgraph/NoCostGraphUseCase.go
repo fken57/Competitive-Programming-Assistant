@@ -82,3 +82,7 @@ func (g *NoCostGraphUseCase) GetTreeDistance(graph graphdatabase.UnweightedGraph
 	treeDistance := unweightedgraph.GetTreeDistance(graph)
 	return treeDistance, nil
 }
+
+func (g *NoCostGraphUseCase) TopologicalSort(graph graphdatabase.UnweightedGraph) ([]int, error) {
+	return unweightedgraph.TopologicalSort(graph)
+}

@@ -1,0 +1,10 @@
+/* デフォルトの余白を消して、扱いやすくする魔法のおまじない */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: sans-serif;
+}

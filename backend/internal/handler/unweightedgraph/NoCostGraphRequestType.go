@@ -27,3 +27,7 @@ type TreeDistanceResponse struct {
 	Vertex1 int `json:"vertex1"`
 	Vertex2 int `json:"vertex2"`
 }
+
+type TopologicalSortResponse struct{
+	Vertices []int `json:"vertices"`
+}

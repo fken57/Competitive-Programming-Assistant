@@ -1,10 +1,12 @@
-import Hyperlink from '../../components/Hyperlink/Hyperlink';
-import logo from '../../assets/logo.svg';
+import Hyperlink from '../components/Hyperlink/Hyperlink';
+import logo from '../assets/logo.svg';
+import {Caption} from '../components/Home/caption'
 
 function Home() {
   return (
     <main className="home-page">
       <section className="home-hero">
+        <Caption />
         <div className="home-hero__copy">
           <p className="home-eyebrow">Frontend structure</p>
           <h1>機能ごとに分けて、壊れにくい React アプリへ</h1>

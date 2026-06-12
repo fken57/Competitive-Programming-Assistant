@@ -1,0 +1,21 @@
+.caption{
+    background-color: #D0D0D0;
+    border-bottom: 1px solid #ccc;
+    padding: 16px 24px;
+}
+
+.caption-alignment{
+    justify-content: space-evenly;
+}
+
+.caption-title{
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+}
+
+.caption-description{
+    font-size: 16px;
+    padding: 24px;
+}
