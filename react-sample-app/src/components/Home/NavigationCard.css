@@ -85,7 +85,7 @@
 }
 
 .card_item_imgWrapper::after {
-  content: "Read More";
+  content: "Show The Page";
   display: flex;
   justify-content: center;
   align-items: center;
