@@ -1,4 +1,4 @@
-POST http://localhost:8080/apis/graphs/unweighted/ordered
+POST http://localhost:8080/apis/graphs/unweighted/BFS
 Content-Type: application/json
 
 {

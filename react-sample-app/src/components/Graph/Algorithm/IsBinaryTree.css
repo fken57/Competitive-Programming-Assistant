@@ -1,0 +1,40 @@
+/* アルゴリズム全体の親コンテナ（ライトテーマに馴染む白ベース・柔らかな影） */
+.is-binary-tree-algorithm-container {
+    background-color: #ffffff;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #eaeaec;
+}
+
+/* ボタンを格納する器（レイアウトのみを担当） */
+.button-container {
+  position: relative;
+  padding-bottom: 0.5em;
+  color: #1f2937;
+  border-bottom: 3px solid #6366f1;
+  margin-bottom: 1.5em;
+  font-size: 24px;
+  text-align: left;
+}
+
+.button-container::after {
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  content: '';
+  width: 30%;
+  height: 3px;
+  background: #ec4899;
+}
+
+/* 結果表示エリア（全体に馴染むごく薄いグレー） */
+.result-display-area {
+    margin-top: 15px;
+    padding: 16px;
+    background-color: #f8f9fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    color: #24292e; /* 真っ黒ではなく、読みやすい濃いグレー */
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}

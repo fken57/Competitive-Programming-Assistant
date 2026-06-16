@@ -13,7 +13,7 @@ import (
 	userrepo "backend/internal/infrastructure/user"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/jmoiron/sqlx"
+	//"github.com/jmoiron/sqlx"
 
 	graphhandler "backend/internal/handler/unweightedgraph"
 	userhandler "backend/internal/handler/user"
@@ -22,12 +22,12 @@ import (
 )
 
 func main() {
-	dsn := "host=127.0.0.1 port=5432 user=ken57 password=post1810 dbname=authdb sslmode=disable"
-	userDB, err := sqlx.Connect("postgres", dsn)
-	if err != nil {
-		panic(err)
-	}
-	defer userDB.Close()
+	//dsn := "host=127.0.0.1 port=5432 user=ken57 password=post1810 dbname=authdb sslmode=disable"
+	//userDB, err := sqlx.Connect("postgres", dsn)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//defer userDB.Close()
 
 	const initUserSQL = `CREATE TABLE IF NOT EXISTS users (
 		id VARCHAR(36) PRIMARY KEY,
@@ -36,12 +36,12 @@ func main() {
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	)`
 
-	_, err = userDB.Exec(initUserSQL)
-	if err != nil {
-		panic(err)
-	}
+	//_, err = userDB.Exec(initUserSQL)
+	//if err != nil {
+	//	panic(err)
+	//}
 
-	userRepo := userrepo.NewUserRepository(userDB)
+	userRepo := userrepo.NewFakeUserRepository(nil)
 	userUsecase := userusecase.NewUserUsecase(userRepo)
 	userAuthHandler := userhandler.NewUserAuthHandler(userUsecase)
 

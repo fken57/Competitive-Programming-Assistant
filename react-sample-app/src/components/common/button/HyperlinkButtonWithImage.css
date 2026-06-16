@@ -1,0 +1,33 @@
+.hyperlink-button-with-image-container{
+
+}
+
+.hyperlink-button-with-image {
+  display: flex;
+  justify-content: center; /* 横の中央寄せ */
+  align-items: center;     /* 縦の中央寄せ */
+  gap: 8px;                /* 画像と文字の隙間（これだけで綺麗に空きます） */
+  width: 100%;
+
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  /* Reactから渡された '--btn-color' を背景色にする */
+  background-color: var(--btn-color); 
+}
+
+/* ホバー時は、明度などを少し変える（フィルターを使うとどんな色にも対応できて便利です） */
+.hyperlink-button-with-image:hover {
+  filter: brightness(0.9); /* 元の色より少しだけ暗くする */
+  transform: translateY(-2px);
+}
+
+.button-content-text {
+    color: var(--text-color);
+    font-size: large;
+    font-family: Noto Serif JP, sans-serif;
+}

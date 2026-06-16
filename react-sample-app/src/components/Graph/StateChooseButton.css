@@ -1,0 +1,38 @@
+/* トグル全体をひとまとめのコンテナにする */
+.tab-3 {
+  display: inline-flex;
+  margin: 0 auto 2em;
+  background-color: #000000;
+  border-radius: 8px;
+  overflow: hidden; /* 角丸をラベルにも適用させるため */
+}
+
+/* 各トグル（タブ）のデザイン */
+.tab-3 > label {
+  padding: 12px 24px;
+  background-color: transparent;
+  color: #999999; /* 非アクティブ時は少し暗い文字色 */
+  font-size: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  /* 切り替わったときに高さが変わってガタつくのを防ぐため、あらかじめ透明な線を引いておく */
+  border-bottom: 4px solid transparent; 
+}
+
+/* ホバー時のデザイン */
+.tab-3 > label:hover {
+  color: #ffffff;
+}
+
+/* ラジオボタン本体は非表示 */
+.tab-3 input {
+  display: none;
+}
+
+/* アクティブ（選択中）のタブのデザイン */
+.tab-3 label:has(:checked) {
+  color: #ffffff;
+  border-bottom: 4px solid green; /* 下線ありを維持しつつ、テーマカラーの緑にする */
+  background-color: #1a1a1a; /* 選択されている要素の背景を少し変えてメリハリを出す */
+}
