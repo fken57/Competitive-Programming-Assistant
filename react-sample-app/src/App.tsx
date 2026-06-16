@@ -1,14 +1,17 @@
-import Header from './components/header/header'
+import Header from './components/header/header';
 import { MainRouter } from "./components/router/MainRouter";
+import { Footer } from './components/footer/Footer';
 
 export default function App() {
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Header />
-      <MainRouter />
+      <div style={{ flex: 1 }}>
+        <MainRouter />
+      </div>
+      <Footer />
     </div>
   );
-
 
 }
