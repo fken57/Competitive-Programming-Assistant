@@ -5,27 +5,45 @@ export type WeightedAdjacencyListItem = { to: number; weight: number };
 /**
  * グラフの入力文字列をパースして、N(頂点数)、M(辺数)、およびエッジのリスト(1-indexedのまま)を取得します。
  * 無向グラフの場合は、逆方向のエッジもリストに追加します。
+ * 入力フォーマットが不正な場合は Error をスローします。
  */
 export const parseUnweightedEdges = (input: string, isDirected: boolean = false): { N: number; M: number; edges: UnweightedEdge[] } => {
   const lines = input.trim().split('\n').map(line => line.trim()).filter(line => line.length > 0);
-  if (lines.length === 0) return { N: 0, M: 0, edges: [] };
+  if (lines.length === 0) {
+    throw new Error("入力が空です。N M とエッジ情報を入力してください。");
+  }
 
   const [N_str, M_str] = lines[0].split(/\s+/);
   const N = parseInt(N_str, 10);
   const M = parseInt(M_str, 10);
 
-  if (isNaN(N)) return { N: 0, M: 0, edges: [] };
+  if (isNaN(N) || isNaN(M)) {
+    throw new Error("1行目のフォーマットが不正です。頂点数N と 辺数M をスペース区切りで入力してください。");
+  }
+
+  if (lines.length - 1 !== M) {
+    throw new Error(`辺の数が一致しません。M=${M} が指定されていますが、実際の辺の入力は ${lines.length - 1} 行です。`);
+  }
 
   const edges: UnweightedEdge[] = [];
   for (let i = 1; i < lines.length; i++) {
-    const [u_str, v_str] = lines[i].split(/\s+/);
-    const u = parseInt(u_str, 10);
-    const v = parseInt(v_str, 10);
-    if (!isNaN(u) && !isNaN(v)) {
-      edges.push({ u, v });
-      if (!isDirected) {
-        edges.push({ u: v, v: u });
-      }
+    const parts = lines[i].split(/\s+/);
+    if (parts.length < 2) {
+      throw new Error(`${i + 1}行目の入力が不正です。2つの頂点 u v を入力してください。`);
+    }
+    const u = parseInt(parts[0], 10);
+    const v = parseInt(parts[1], 10);
+    
+    if (isNaN(u) || isNaN(v)) {
+      throw new Error(`${i + 1}行目の頂点指定が数値ではありません。`);
+    }
+    if (u < 1 || u > N || v < 1 || v > N) {
+      throw new Error(`${i + 1}行目の頂点が範囲外です。1 から ${N} の間で指定してください。`);
+    }
+
+    edges.push({ u, v });
+    if (!isDirected) {
+      edges.push({ u: v, v: u });
     }
   }
 
@@ -35,28 +53,46 @@ export const parseUnweightedEdges = (input: string, isDirected: boolean = false)
 /**
  * 重み付きグラフの入力文字列をパースして、N(頂点数)、M(辺数)、およびエッジのリスト(1-indexedのまま)を取得します。
  * 無向グラフの場合は、逆方向のエッジもリストに追加します。
+ * 入力フォーマットが不正な場合は Error をスローします。
  */
 export const parseWeightedEdges = (input: string, isDirected: boolean = false): { N: number; M: number; edges: WeightedEdge[] } => {
   const lines = input.trim().split('\n').map(line => line.trim()).filter(line => line.length > 0);
-  if (lines.length === 0) return { N: 0, M: 0, edges: [] };
+  if (lines.length === 0) {
+    throw new Error("入力が空です。N M とエッジ情報を入力してください。");
+  }
 
   const [N_str, M_str] = lines[0].split(/\s+/);
   const N = parseInt(N_str, 10);
   const M = parseInt(M_str, 10);
 
-  if (isNaN(N)) return { N: 0, M: 0, edges: [] };
+  if (isNaN(N) || isNaN(M)) {
+    throw new Error("1行目のフォーマットが不正です。頂点数N と 辺数M をスペース区切りで入力してください。");
+  }
+
+  if (lines.length - 1 !== M) {
+    throw new Error(`辺の数が一致しません。M=${M} が指定されていますが、実際の辺の入力は ${lines.length - 1} 行です。`);
+  }
 
   const edges: WeightedEdge[] = [];
   for (let i = 1; i < lines.length; i++) {
-    const [u_str, v_str, w_str] = lines[i].split(/\s+/);
-    const u = parseInt(u_str, 10);
-    const v = parseInt(v_str, 10);
-    const w = parseInt(w_str, 10);
-    if (!isNaN(u) && !isNaN(v) && !isNaN(w)) {
-      edges.push({ u, v, w });
-      if (!isDirected) {
-        edges.push({ u: v, v: u, w });
-      }
+    const parts = lines[i].split(/\s+/);
+    if (parts.length < 3) {
+      throw new Error(`${i + 1}行目の入力が不正です。2つの頂点 u v と重み w を入力してください。`);
+    }
+    const u = parseInt(parts[0], 10);
+    const v = parseInt(parts[1], 10);
+    const w = parseInt(parts[2], 10);
+    
+    if (isNaN(u) || isNaN(v) || isNaN(w)) {
+      throw new Error(`${i + 1}行目の指定が数値ではありません。`);
+    }
+    if (u < 1 || u > N || v < 1 || v > N) {
+      throw new Error(`${i + 1}行目の頂点が範囲外です。1 から ${N} の間で指定してください。`);
+    }
+
+    edges.push({ u, v, w });
+    if (!isDirected) {
+      edges.push({ u: v, v: u, w });
     }
   }
 

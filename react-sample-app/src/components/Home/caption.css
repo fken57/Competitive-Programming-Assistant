@@ -42,7 +42,7 @@
 }
 
 .caption-title {
-    font-size: 2.2rem;
+    font-size: 2.0rem;
     font-weight: 800;
     margin: 0 0 24px 0;
     letter-spacing: 0.05em;
@@ -51,7 +51,7 @@
 }
 
 .caption-description {
-    font-size: 1.1rem;
+    font-size: 1.0rem;
     line-height: 1.8;
     margin: 0;
     color: #555555; /* サブテキストも暗めに */

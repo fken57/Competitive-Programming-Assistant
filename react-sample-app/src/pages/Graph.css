@@ -1,0 +1,67 @@
+.graph-page-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  min-height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.graph-page-container {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+}
+
+.graph-page-left {
+  flex: 0 0 400px; /* 固定幅 */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.graph-page-right {
+  flex: 1; /* 残りのスペースを埋める */
+  display: flex;
+  flex-direction: column;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  position: relative;
+  min-height: 500px;
+}
+
+.graph-page-bottom {
+  width: 100%;
+  padding-top: 20px;
+  border-top: 1px solid #eaeaea;
+}
+
+.graph-page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  color: #333;
+}
+
+.graph-page-desc {
+  font-size: 1rem;
+  color: #666;
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+}
+
+/* スマホ対応 */
+@media screen and (max-width: 992px) {
+  .graph-page-container {
+    flex-direction: column;
+  }
+  .graph-page-left {
+    flex: 1;
+  }
+  .graph-page-right {
+    min-height: 400px;
+  }
+}

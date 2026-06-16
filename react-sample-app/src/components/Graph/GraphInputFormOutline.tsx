@@ -1,11 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { MyButton } from '../common/button/Button';
 import { useNavigate } from 'react-router-dom';
 import { StateChooseToggle } from './StateChooseButton';
 import { parseGraphToAdjacencyList, parseWeightedGraphToAdjacencyList } from '../../util/graphUtils';
 import { useUnweightedGraphApi } from '../../hooks/Graph/useUnweightedGraphApi';
 import { GRAPH_ENDPOINTS } from '../../util/NoCostGraphSendApis';
-import { useState } from 'react';
+import './GraphInputFormOutline.css';
 
 type GraphInputFormOutlineProps = {
     graphType: string;
@@ -14,26 +14,40 @@ type GraphInputFormOutlineProps = {
     setHasWeights: (value: boolean) => void;
     setAdjacentList: (value: number[][]) => void;
     setIsDataLoaded: (value: boolean) => void;
+    setErrorMessage: (msg: string) => void;
 };
 
-export function GraphInputFormOutline({ graphType, setGraphType, hasWeights, setHasWeights, setAdjacentList, setIsDataLoaded }: GraphInputFormOutlineProps) {
+export function GraphInputFormOutline({ 
+    graphType, setGraphType, hasWeights, setHasWeights, setAdjacentList, setIsDataLoaded, setErrorMessage 
+}: GraphInputFormOutlineProps) {
     const navigate = useNavigate();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     
-
     const { postGraphData, loading, error, data } = useUnweightedGraphApi();
 
     const handleSubmit = async () => {
         const textarea = textareaRef.current;
-        if (!textarea || !textarea.value.trim()) return;
+        if (!textarea || !textarea.value.trim()) {
+            setErrorMessage("入力が空です。");
+            setIsDataLoaded(false);
+            return;
+        }
 
-        if (!hasWeights) {
-            const runtimeAdjacencyList = parseGraphToAdjacencyList(textarea.value, graphType === 'directed');
-            setAdjacentList(runtimeAdjacencyList);
-            setIsDataLoaded(true);
-        } else {
-            const weightedAdjacencyList = parseWeightedGraphToAdjacencyList(textarea.value, graphType === 'directed');
-            // 重み付きグラフ用の処理をここに記述します
+        try {
+            setErrorMessage(""); // Clear previous errors
+            if (!hasWeights) {
+                const runtimeAdjacencyList = parseGraphToAdjacencyList(textarea.value, graphType === 'directed');
+                setAdjacentList(runtimeAdjacencyList);
+                setIsDataLoaded(true);
+            } else {
+                const weightedAdjacencyList = parseWeightedGraphToAdjacencyList(textarea.value, graphType === 'directed');
+                // 重み付きグラフ用の処理をここに記述します
+                // 現状はエラーがスローされなければOKとして扱う（必要に応じて状態管理に追加）
+                setIsDataLoaded(true);
+            }
+        } catch (e: any) {
+            setErrorMessage(e.message || "パースエラーが発生しました。");
+            setIsDataLoaded(false);
         }
     };
 
@@ -46,13 +60,12 @@ export function GraphInputFormOutline({ graphType, setGraphType, hasWeights, set
             <div className="form-outline-input-area">
                 <textarea 
                     className="form-outline-textarea" 
-                    placeholder="入力してください"
+                    placeholder="N M&#10;u1 v1&#10;..."
                     ref={textareaRef}
                 />
             </div>
             
             <div className="form-outline-button-area">
-                {/* isLoading の代わりに loading を使用して判定します */}
                 <MyButton
                     color="green"
                     onClick={handleSubmit}

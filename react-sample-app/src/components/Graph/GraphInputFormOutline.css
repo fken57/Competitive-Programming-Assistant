@@ -1,0 +1,50 @@
+.form-outline {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border: 1px solid #eaeaea;
+}
+
+.form-outline-text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.form-outline-input-area {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-outline-textarea {
+    width: 100%;
+    min-height: 180px;
+    padding: 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-family: 'Consolas', 'Courier New', monospace; /* for code/number input */
+    font-size: 1rem;
+    color: #333;
+    background-color: #fafafa;
+    resize: vertical;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-outline-textarea:focus {
+    outline: none;
+    border-color: #4CAF50; /* Match the green button */
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
+    background-color: #fff;
+}
+
+.form-outline-button-area {
+    display: flex;
+    justify-content: flex-end; /* Align button to the right */
+    margin-top: 8px;
+}
