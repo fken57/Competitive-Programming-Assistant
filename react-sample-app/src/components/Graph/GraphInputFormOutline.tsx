@@ -2,7 +2,8 @@ import React, { useRef, useState } from 'react';
 import { MyButton } from '../common/button/Button';
 import { useNavigate } from 'react-router-dom';
 import { StateChooseToggle } from './StateChooseButton';
-import { parseGraphToAdjacencyList, parseWeightedGraphToAdjacencyList } from '../../util/graphUtils';
+import { parseGraphAllData } from '../../util/graphUtils';
+import { VisualGraphData } from '../../util/graphUtils';
 import { useUnweightedGraphApi } from '../../hooks/Graph/useUnweightedGraphApi';
 import { GRAPH_ENDPOINTS } from '../../util/NoCostGraphSendApis';
 import './GraphInputFormOutline.css';
@@ -12,13 +13,14 @@ type GraphInputFormOutlineProps = {
     setGraphType: (value: string) => void;
     hasWeights: boolean;
     setHasWeights: (value: boolean) => void;
-    setAdjacentList: (value: number[][]) => void;
+    setAdjacentList: (value: any[]) => void;
+    setVisualGraphData: (value: VisualGraphData) => void;
     setIsDataLoaded: (value: boolean) => void;
     setErrorMessage: (msg: string) => void;
 };
 
 export function GraphInputFormOutline({ 
-    graphType, setGraphType, hasWeights, setHasWeights, setAdjacentList, setIsDataLoaded, setErrorMessage 
+    graphType, setGraphType, hasWeights, setHasWeights, setAdjacentList, setVisualGraphData, setIsDataLoaded, setErrorMessage 
 }: GraphInputFormOutlineProps) {
     const navigate = useNavigate();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -35,16 +37,11 @@ export function GraphInputFormOutline({
 
         try {
             setErrorMessage(""); // Clear previous errors
-            if (!hasWeights) {
-                const runtimeAdjacencyList = parseGraphToAdjacencyList(textarea.value, graphType === 'directed');
-                setAdjacentList(runtimeAdjacencyList);
-                setIsDataLoaded(true);
-            } else {
-                const weightedAdjacencyList = parseWeightedGraphToAdjacencyList(textarea.value, graphType === 'directed');
-                // 重み付きグラフ用の処理をここに記述します
-                // 現状はエラーがスローされなければOKとして扱う（必要に応じて状態管理に追加）
-                setIsDataLoaded(true);
-            }
+            
+            const { adjList, visualData } = parseGraphAllData(textarea.value, graphType === 'directed', hasWeights);
+            setAdjacentList(adjList);
+            setVisualGraphData(visualData);
+            setIsDataLoaded(true);
         } catch (e: any) {
             setErrorMessage(e.message || "パースエラーが発生しました。");
             setIsDataLoaded(false);

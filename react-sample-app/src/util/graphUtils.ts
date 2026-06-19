@@ -2,6 +2,29 @@ export type UnweightedEdge = { u: number; v: number };
 export type WeightedEdge = { u: number; v: number; w: number };
 export type WeightedAdjacencyListItem = { to: number; weight: number };
 
+export type VisualNode = {
+    id: number;
+    label: string;
+    weight?: number;
+    isStartNode?: boolean;
+    attributes?: Record<string, any>;
+    color?: string;
+};
+
+export type VisualEdge = {
+    source: number;
+    target: number;
+    weight?: number;
+    isStartEdge?: boolean;
+    attributes?: Record<string, any>;
+    color?: string;
+};
+
+export type VisualGraphData = {
+    nodes: VisualNode[];
+    edges: VisualEdge[];
+};
+
 /**
  * グラフの入力文字列をパースして、N(頂点数)、M(辺数)、およびエッジのリスト(1-indexedのまま)を取得します。
  * 無向グラフの場合は、逆方向のエッジもリストに追加します。
@@ -151,4 +174,64 @@ export const parseWeightedGraphToAdjacencyList = (input: string, isDirected: boo
   const { N, edges } = parseWeightedEdges(input, isDirected);
   const zeroIndexedEdges = to0IndexedWeighted(edges);
   return buildWeightedAdjacencyList(N, zeroIndexedEdges);
+};
+/**
+ * N（頂点数）とパース済みのエッジリストから、D3.js等で描画しやすい VisualGraphData を生成します。
+ * （無向グラフでの重複エッジのレンダリングを防ぎます）
+ */
+export const buildVisualGraphData = (
+  N: number,
+  edges: (UnweightedEdge | WeightedEdge)[],
+  isDirected: boolean,
+  isWeighted: boolean
+): VisualGraphData => {
+  const nodes: VisualNode[] = Array.from({ length: N }, (_, i) => ({
+    id: i,
+    label: (i + 1).toString(), // 1-indexed for display
+  }));
+
+  const visualEdges: VisualEdge[] = [];
+  const seenEdges = new Set<string>();
+
+  for (const edge of edges) {
+    const source = edge.u - 1; // Convert 1-indexed to 0-indexed for visualization
+    const target = edge.v - 1;
+    
+    // 無向グラフの描画重複を防ぐ
+    if (!isDirected) {
+      const edgeId = [source, target].sort().join('-');
+      if (seenEdges.has(edgeId)) continue;
+      seenEdges.add(edgeId);
+    }
+
+    const visualEdge: VisualEdge = { source, target };
+    if (isWeighted && 'w' in edge) {
+      visualEdge.weight = edge.w;
+    }
+    visualEdges.push(visualEdge);
+  }
+
+  return { nodes, edges: visualEdges };
+};
+/**
+ * グラフの入力文字列から、アルゴリズム用の隣接リストと描画用の VisualGraphData の両方を生成します。
+ */
+export const parseGraphAllData = (
+  input: string,
+  isDirected: boolean,
+  isWeighted: boolean
+): { adjList: any[]; visualData: VisualGraphData } => {
+  if (isWeighted) {
+    const { N, edges } = parseWeightedEdges(input, isDirected);
+    const zeroIndexedEdges = to0IndexedWeighted(edges);
+    const adjList = buildWeightedAdjacencyList(N, zeroIndexedEdges);
+    const visualData = buildVisualGraphData(N, edges, isDirected, isWeighted);
+    return { adjList, visualData };
+  } else {
+    const { N, edges } = parseUnweightedEdges(input, isDirected);
+    const zeroIndexedEdges = to0IndexedUnweighted(edges);
+    const adjList = buildAdjacencyList(N, zeroIndexedEdges);
+    const visualData = buildVisualGraphData(N, edges, isDirected, isWeighted);
+    return { adjList, visualData };
+  }
 };

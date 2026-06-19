@@ -6,8 +6,10 @@ import { BFS } from './BFS';
 import { IsBinaryTree } from './IsBinaryTree';
 import './UnweightedUnordered.css'
 
+import { VisualGraphData } from '../../../util/graphUtils';
+
 type UnweightedUnorderedAlgorithmProps = {
-    adjacentList: number[][];
+    adjacentList: any[];
 };
 
 export function UnweightedUnorderedAlgorithm({ adjacentList }: UnweightedUnorderedAlgorithmProps) {

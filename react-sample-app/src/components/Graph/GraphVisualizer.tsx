@@ -1,56 +1,41 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
+import { VisualGraphData, VisualNode, VisualEdge } from '../../util/graphUtils';
 import './GraphVisualizer.css';
 
 type GraphVisualizerProps = {
-  adjacentList: number[][]; // Currently unweighted. If weighted is added later, type might need adjustment.
+  graphData: VisualGraphData | null;
   isDataLoaded: boolean;
   errorMessage: string;
   graphType: string; // 'directed' or 'undirected'
+  nodeColorFn?: (node: VisualNode) => string;
+  edgeColorFn?: (edge: VisualEdge) => string;
 };
 
 export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({ 
-  adjacentList, 
+  graphData, 
   isDataLoaded, 
   errorMessage,
-  graphType 
+  graphType,
+  nodeColorFn,
+  edgeColorFn
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     // If not loaded or error, don't draw. Clear previous drawing if any.
-    if (!isDataLoaded || errorMessage) {
+    if (!isDataLoaded || errorMessage || !graphData) {
       if (svgRef.current) {
         d3.select(svgRef.current).selectAll("*").remove();
       }
       return;
     }
 
-    if (!svgRef.current || adjacentList.length === 0) return;
+    if (!svgRef.current || graphData.nodes.length === 0) return;
 
-    // --- Prepare Nodes and Links for D3 ---
-    const nodes = Array.from({ length: adjacentList.length }, (_, i) => ({ id: i }));
-    const links: { source: number, target: number }[] = [];
-
-    // To prevent duplicate undirected edges in rendering, we use a set
-    const seenEdges = new Set<string>();
-
-    adjacentList.forEach((neighbors, u) => {
-      neighbors.forEach((v) => {
-        // If it's an object with `to`, extract it (for future weighted support)
-        const target = typeof v === 'number' ? v : (v as any).to;
-        
-        if (graphType === 'undirected') {
-          const edgeId = [u, target].sort().join('-');
-          if (!seenEdges.has(edgeId)) {
-            seenEdges.add(edgeId);
-            links.push({ source: u, target });
-          }
-        } else {
-          links.push({ source: u, target });
-        }
-      });
-    });
+    // Deep copy nodes and edges for D3 simulation to mutate without affecting React state
+    const nodes = graphData.nodes.map(n => ({ ...n }));
+    const links = graphData.edges.map(e => ({ ...e }));
 
     // --- D3 Setup ---
     const width = svgRef.current.clientWidth || 800;
@@ -78,18 +63,32 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
 
     // --- Force Simulation ---
     const simulation = d3.forceSimulation(nodes as d3.SimulationNodeDatum[])
-      .force("link", d3.forceLink(links).id((d: any) => d.id).distance(100))
-      .force("charge", d3.forceManyBody().strength(-300))
-      .force("center", d3.forceCenter(width / 2, height / 2));
+      .force("link", d3.forceLink(links).id((d: any) => d.id).distance(120))
+      .force("charge", d3.forceManyBody().strength(-400))
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("x", d3.forceX(width / 2).strength(0.05)) // Pull isolated nodes to center horizontally
+      .force("y", d3.forceY(height / 2).strength(0.05)); // Pull isolated nodes to center vertically
 
     // --- Draw Links ---
-    const link = svg.append("g")
+    const linkGroup = svg.append("g")
       .attr("class", "links")
-      .selectAll("line")
+      .selectAll("g")
       .data(links)
-      .enter().append("line")
+      .enter().append("g");
+
+    const link = linkGroup.append("line")
       .attr("class", "graph-link")
+      .attr("stroke", (d: any) => edgeColorFn ? edgeColorFn(d) : (d.color || '#999'))
+      .attr("stroke-width", (d: any) => d.isStartEdge ? 4 : 2)
       .attr("marker-end", graphType === 'directed' ? "url(#arrowhead)" : "");
+
+    const linkLabel = linkGroup.append("text")
+      .text((d: any) => d.weight !== undefined ? d.weight.toString() : "")
+      .attr("class", "graph-edge-label")
+      .attr("dy", -5)
+      .attr("text-anchor", "middle")
+      .style("fill", "#555")
+      .style("font-size", "12px");
 
     // --- Draw Nodes ---
     const nodeGroup = svg.append("g")
@@ -104,13 +103,17 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
 
     nodeGroup.append("circle")
       .attr("r", 15)
-      .attr("class", "graph-node");
+      .attr("class", "graph-node")
+      .style("fill", (d: any) => nodeColorFn ? nodeColorFn(d) : (d.color || '#fff'))
+      .attr("stroke", (d: any) => d.isStartNode ? '#333' : '#666')
+      .attr("stroke-width", (d: any) => d.isStartNode ? 4 : 2);
 
     nodeGroup.append("text")
-      .text((d) => (d.id + 1).toString()) // Display as 1-indexed
+      .text((d: any) => d.label)
       .attr("class", "graph-node-label")
       .attr("dy", 4)
-      .attr("text-anchor", "middle");
+      .attr("text-anchor", "middle")
+      .style("fill", "#333");
 
     // --- Tick Function ---
     const radius = 15;
@@ -126,6 +129,10 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
         .attr("y1", (d: any) => d.source.y)
         .attr("x2", (d: any) => d.target.x)
         .attr("y2", (d: any) => d.target.y);
+
+      linkLabel
+        .attr("x", (d: any) => (d.source.x + d.target.x) / 2)
+        .attr("y", (d: any) => (d.source.y + d.target.y) / 2);
 
       nodeGroup
         .attr("transform", (d: any) => `translate(${d.x},${d.y})`);
@@ -152,7 +159,7 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
     return () => {
       simulation.stop();
     };
-  }, [adjacentList, isDataLoaded, errorMessage, graphType]);
+  }, [graphData, isDataLoaded, errorMessage, graphType, nodeColorFn, edgeColorFn]);
 
   return (
     <div className="graph-visualizer-container">
