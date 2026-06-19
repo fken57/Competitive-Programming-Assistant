@@ -8,7 +8,7 @@ import { GraphVisualizer } from '../GraphVisualizer';
 import { buildBFSVisualGraphData } from '../../../util/BFSGraphJsonTransfrom';
 
 type UnweightedUnorderedAlgorithmProps = {
-    adjacentList: any[];
+    adjacentList: number[][];
 };
 
 export function BFS({ adjacentList }: UnweightedUnorderedAlgorithmProps) {

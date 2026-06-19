@@ -7,32 +7,45 @@
 import { VisualGraphData, VisualNode, VisualEdge } from './graphUtils';
 
 
-export interface BFSRawApiResponse {
-    start_vertex: number;
-    visited_vertices: number[];
+
+
+
+
+export interface BipartiteRawApiResponse {
+    is_binary_tree : boolean;
+    group_one: number[];
+    group_two: number[];
 }
 
 export type GraphNeighbor = number | { to: number; weight?: number };
 
-export function buildBFSVisualGraphData(adjacentList: GraphNeighbor[][], data: BFSRawApiResponse | null): VisualGraphData | null {
+export function IsBipartiteTree(data: BipartiteRawApiResponse) {
+    if(!data) return false;
+    return data.is_binary_tree;
+}
+
+export function buildBipartiteVisualGraphData(adjacentList: GraphNeighbor[][], data: BipartiteRawApiResponse | null): VisualGraphData | null {
     if (!data) return null;
     
     const N = adjacentList.length;
     const nodes: VisualNode[] = Array.from({ length: N }, (_, i) => {
-        const distArray = data.visited_vertices || []; // バックエンドからは visited_vertices という名前で距離配列が返ってくる
-        const dist = distArray[i];
-        
+        const groupOne = data.group_one?.includes(i) || false;
+        const groupTwo = data.group_two?.includes(i) || false;
+
         let labelStr = (i + 1).toString();
-        if (dist !== undefined && dist !== -1) {
-            labelStr = `${i + 1} (d: ${dist})`;
+        if (groupOne) {
+            labelStr = `${i + 1} (Group 1)`;
+        } 
+        else if (groupTwo) {
+            labelStr = `${i + 1} (Group 2)`;
         }
 
         return {
             id: i,
             label: labelStr,
-            isStartNode: i === data.start_vertex,
             attributes: {
-                visited: dist !== undefined && dist !== -1
+                groupOne: groupOne, 
+                groupTwo: groupTwo
             }
         };
     });

@@ -4,13 +4,13 @@ import { BFS } from './BFS';
 import { IsBinaryTree } from './IsBinaryTree';
 import './UnweightedUnordered.css'
 
-type UnweightedUnorderedAlgorithmProps = {
+type UnweightedOrderedAlgorithmProps = {
     adjacentList: any[];
 };
 
-export function UnweightedUnorderedAlgorithm({ adjacentList }: UnweightedUnorderedAlgorithmProps) {
+export function UnweightedOrderedAlgorithm({ adjacentList }: UnweightedOrderedAlgorithmProps) {
     return (
-        <div className="unweighted-unordered-algorithm-container">
+        <div className="unweighted-ordered-algorithm-container">
             {<BFS adjacentList={adjacentList} />}
             {<IsBinaryTree adjacentList={adjacentList} />}
         </div>
