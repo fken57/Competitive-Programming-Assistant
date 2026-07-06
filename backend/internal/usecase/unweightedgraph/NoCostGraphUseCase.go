@@ -86,3 +86,15 @@ func (g *NoCostGraphUseCase) GetTreeDistance(graph graphdatabase.UnweightedGraph
 func (g *NoCostGraphUseCase) TopologicalSort(graph graphdatabase.UnweightedGraph) ([]int, error) {
 	return unweightedgraph.TopologicalSort(graph)
 }
+
+func (g *NoCostGraphUseCase) ExecuteIsTree(graph graphdatabase.UnweightedGraph) (bool, error) {
+	if !unweightedgraph.IsUndirectedGraph(graph) {
+		return false, errors.New("the graph is not an undirected graph")
+	}
+	return unweightedgraph.IsTree(graph), nil
+}
+
+func (g *NoCostGraphUseCase) ExecuteSCC(graph graphdatabase.UnweightedGraph) ([][]int, error) {
+	sccs := unweightedgraph.SCC(graph)
+	return sccs, nil
+}

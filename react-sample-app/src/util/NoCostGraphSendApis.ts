@@ -8,9 +8,11 @@ export interface NoCostGraphNeighborListRequest {
 
 export const GRAPH_ENDPOINTS = {
     IS_BINARY_TREE: '/graphs/unweighted/unordered/isbinarytree',
+    IS_TREE: '/graphs/unweighted/unordered/istree',
     TREE_DISTANCE: '/graphs/unweighted/unordered/treedistance',
     TOPOLOGICAL_SORT: '/graphs/unweighted/ordered/topologicalsort',
     BFS: '/graphs/unweighted/BFS',
+    SCC: '/graphs/unweighted/ordered/scc'
 } as const;
 
 export type GraphEndpoint= typeof GRAPH_ENDPOINTS[keyof typeof GRAPH_ENDPOINTS];

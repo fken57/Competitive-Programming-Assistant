@@ -11,14 +11,17 @@ import (
 	//"os"
 	graphrepo "backend/internal/infrastructure/unweightedgraph"
 	userrepo "backend/internal/infrastructure/user"
+	costgraphrepo "backend/internal/infrastructure/weightedgraph"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	//"github.com/jmoiron/sqlx"
 
 	graphhandler "backend/internal/handler/unweightedgraph"
 	userhandler "backend/internal/handler/user"
+	costgraphhandler "backend/internal/handler/weightedgraph"
 	graphusecase "backend/internal/usecase/unweightedgraph"
 	userusecase "backend/internal/usecase/userusecase"
+	costgraphusecase "backend/internal/usecase/weightedgraph"
 )
 
 func main() {
@@ -59,11 +62,19 @@ func main() {
 
 	g.POST("/graphs/unweighted/unordered", noCostGraphHandler.MakeNewNoCostUnorderedGraph)
 	g.POST("/graphs/unweighted/unordered/isbinarytree", noCostGraphHandler.ExecuteIsBinaryTree)
+	g.POST("/graphs/unweighted/unordered/istree", noCostGraphHandler.ExecuteIsTree)
 	g.POST("/graphs/unweighted/unordered/treedistance", noCostGraphHandler.GetTreeDistance)
 
 	g.POST("/graphs/unweighted/ordered", noCostGraphHandler.MakeNewNoCostOrderedGraph)
 	g.POST("/graphs/unweighted/ordered/topologicalsort", noCostGraphHandler.TopologicalSort)
+	g.POST("/graphs/unweighted/ordered/scc", noCostGraphHandler.ExecuteSCC)
 	g.POST("/graphs/unweighted/BFS", noCostGraphHandler.ExecuteBFS)
+
+	costGraphRepository := costgraphrepo.NewCostGraphFakeRepository(nil)
+	costGraphUseCase := costgraphusecase.NewCostGraphUseCase(costGraphRepository)
+	costGraphHandler := costgraphhandler.NewCostGraphHandler(costGraphUseCase)
+
+	g.POST("/graphs/weighted/ordered/dijkstra", costGraphHandler.ExecuteDijkstra)
 
 
 	g.POST("/users/create", userAuthHandler.Register)

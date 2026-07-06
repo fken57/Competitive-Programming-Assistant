@@ -209,3 +209,58 @@ func (h *NoCostGraphHandler) TopologicalSort(c echo.Context) error {
 		Vertices: vertices,
 	})
 }
+
+func (h *NoCostGraphHandler) ExecuteIsTree(c echo.Context) error {
+	var req NoCostGraphNeighborListRequest
+
+	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+
+	graph, err := h.noCostGraphUseCase.MakeNewNoCostNeighborListGraph(req.VertexCount, req.Neighbors)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	if graph == nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "Graph not found"})
+	}
+
+	isTree, err := h.noCostGraphUseCase.ExecuteIsTree(graph)
+	if err != nil {
+		if err.Error() == "the graph is not an undirected graph" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, IsTreeResponse{
+		IsTree: isTree,
+	})
+}
+
+func (h *NoCostGraphHandler) ExecuteSCC(c echo.Context) error {
+	var req NoCostGraphNeighborListRequest
+
+	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+
+	graph, err := h.noCostGraphUseCase.MakeNewNoCostNeighborListGraph(req.VertexCount, req.Neighbors)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	if graph == nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "Graph not found"})
+	}
+
+	sccs, err := h.noCostGraphUseCase.ExecuteSCC(graph)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, SCCResponse{
+		SCCs: sccs,
+	})
+}

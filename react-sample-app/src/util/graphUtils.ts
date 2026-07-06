@@ -16,6 +16,7 @@ export type VisualEdge = {
     target: number;
     weight?: number;
     isStartEdge?: boolean;
+    isShortestPath?: boolean;
     attributes?: Record<string, any>;
     color?: string;
 };

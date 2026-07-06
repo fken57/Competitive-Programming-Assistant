@@ -31,3 +31,11 @@ type TreeDistanceResponse struct {
 type TopologicalSortResponse struct{
 	Vertices []int `json:"vertices"`
 }
+
+type IsTreeResponse struct {
+	IsTree bool `json:"is_tree"`
+}
+
+type SCCResponse struct {
+	SCCs [][]int `json:"sccs"`
+}

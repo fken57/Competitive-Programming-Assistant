@@ -1,5 +1,8 @@
-import { UnweightedUnorderedAlgorithm } from './Algorithm/UnweightedUnordered';
+import { UnweightedUnorderedAlgorithm } from './Algorithm/UnorderedUnweighted/UnweightedUnordered';
 
+
+import { UnweightedOrderedAlgorithm } from './Algorithm/OrderedUnweighted/UnweightedOrdered';
+import { OrderedWeightedAlgorithm } from './Algorithm/OrderedWeighted/OrderedWeighted';
 
 type AlgorithmFormOutlineProps = {
     hasWeights: boolean;
@@ -14,7 +17,21 @@ export function AlgorithmFormOutline({ hasWeights, graphType, adjacentList }: Al
                     adjacentList={adjacentList} 
                 />
             )}
-  
+            {!hasWeights && graphType === 'directed' && (
+                <UnweightedOrderedAlgorithm 
+                    adjacentList={adjacentList} 
+                />
+            )}
+            {hasWeights && graphType === 'undirected' && (
+                <OrderedWeightedAlgorithm 
+                    adjacentList={adjacentList} 
+                />
+            )}
+            {hasWeights && graphType === 'directed' && (
+                <OrderedWeightedAlgorithm 
+                    adjacentList={adjacentList} 
+                />
+            )}
         </div>
     );
 }

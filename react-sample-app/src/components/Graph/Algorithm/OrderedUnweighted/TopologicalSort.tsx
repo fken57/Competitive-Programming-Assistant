@@ -1,28 +1,22 @@
-
-import './IsBinaryTree.css'
-import { MyButton } from '../../common/button/Button';
-import { useUnweightedGraphApi } from '../../../hooks/Graph/useUnweightedGraphApi';
-import { GRAPH_ENDPOINTS } from '../../../util/NoCostGraphSendApis';
-import { buildBipartiteVisualGraphData , IsBipartiteTree} from '../../../util/BipatiteGraphJsonTransfrom';
 import React, { useMemo } from 'react';
-import { GraphVisualizer } from '../GraphVisualizer';
+import '../UnorderedUnweighted/IsBinaryTree.css'; // Reuse CSS layout
+import { MyButton } from '../../../common/button/Button';
+import { useUnweightedGraphApi } from '../../../../hooks/Graph/useUnweightedGraphApi';
+import { GRAPH_ENDPOINTS } from '../../../../util/NoCostGraphSendApis';
+import { buildTopologicalSortVisualGraphData } from '../../../../util/TopologicalSortGraphJsonTransform';
+import { GraphVisualizer } from '../../GraphVisualizer';
 
-
-type UnweightedUnorderedAlgorithmProps = {
+type UnweightedOrderedAlgorithmProps = {
     adjacentList: number[][];
 };
 
-export function IsBinaryTree({ adjacentList }: UnweightedUnorderedAlgorithmProps) {
+export function TopologicalSort({ adjacentList }: UnweightedOrderedAlgorithmProps) {
         
     const { postGraphData, loading, error, data } = useUnweightedGraphApi();
 
     const resultVisualData = useMemo(() => {
-        return buildBipartiteVisualGraphData(adjacentList, data);
+        return buildTopologicalSortVisualGraphData(adjacentList, data);
     }, [data, adjacentList]);
-
-    const isBinaryTree = useMemo(() => {
-        return IsBipartiteTree(data);
-    }, [data]);
 
     const HandleSubmit = async () => {
         const payload = {
@@ -32,50 +26,53 @@ export function IsBinaryTree({ adjacentList }: UnweightedUnorderedAlgorithmProps
         };
 
         try {
-            // executeOperation の代わりに postGraphData を呼び出します
-            await postGraphData(GRAPH_ENDPOINTS.IS_BINARY_TREE, payload);
+            await postGraphData(GRAPH_ENDPOINTS.TOPOLOGICAL_SORT, payload);
         } catch (err) {
             console.error('グラフデータの送信中にエラーが発生しました:', err);
         }
-        return 
     };
 
-
+    const sortedPathStr = useMemo(() => {
+        if (data?.vertices && data.vertices.length > 0) {
+            return data.vertices.map((v: number) => v + 1).join(' -> ');
+        }
+        return '';
+    }, [data]);
 
     return(
         <div className="is-binary-tree-algorithm-container">
             <div className="button-container">
-                <MyButton
-                    color="blue"
-                    onClick={HandleSubmit}
-                >
-                    二分木の判定
+                <MyButton color="blue" onClick={HandleSubmit}>
+                    {loading ? "実行中..." : "トポロジカルソートを実行"}
                 </MyButton>
             </div>
 
             <div className="result-display-area">
                 <h3 className="bfs-result-title">実行結果</h3>
-                <p className="bfs-result-text">
-                    {isBinaryTree ? 'このグラフは二分木です。' : 'このグラフは二分木ではありません。'}
-                </p>
+                
+                {data && (
+                    <p className="bfs-result-text">
+                        トポロジカルソート結果: {sortedPathStr || "ソートできませんでした。"}
+                    </p>
+                )}
+
                 {error && (
                     <div className="bfs-error-message">
-                        エラーが発生しました: {error.message}
+                        エラーが発生しました: {error.message} <br/>
+                        (閉路が存在するためソートできない可能性があります)
                     </div>
                 )}
-    
                 
-                {isBinaryTree && resultVisualData ? (
+                {data && resultVisualData ? (
                     <div className="bfs-visualizer-wrapper">
                         <div className="bfs-visualizer-box">
                             <GraphVisualizer 
                                 graphData={resultVisualData} 
                                 isDataLoaded={true}
                                 errorMessage=""
-                                graphType="undirected"
+                                graphType="directed"
                                 nodeColorFn={(node) => {
-                                    if (node.attributes?.groupOne) return '#FF0000'; // Red for Group 1
-                                    if (node.attributes?.groupTwo) return '#0000FF'; // Blue for Group 2
+                                    if (node.attributes?.hasOrder) return '#9C27B0'; // Purple for sorted nodes
                                     return node.color || '#42A5F5'; // Default blue
                                 }}
                             />
@@ -93,5 +90,4 @@ export function IsBinaryTree({ adjacentList }: UnweightedUnorderedAlgorithmProps
             </div>
         </div>
     );
-
 }
