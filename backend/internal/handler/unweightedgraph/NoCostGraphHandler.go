@@ -5,9 +5,11 @@ import (
 	"net/http"
 
 	"errors"
+	"fmt"
 
 	"github.com/labstack/echo/v4"
 
+	graphdomain "backend/internal/domain/unweightedgraph"
 	graphusecase "backend/internal/usecase/unweightedgraph"
 )
 
@@ -24,6 +26,23 @@ func NewNoCostGraphHandler(noCostGraphUseCase *graphusecase.NoCostGraphUseCase) 
 	return &NoCostGraphHandler{
 		noCostGraphUseCase: noCostGraphUseCase,
 	}
+}
+
+func validateNoCostNeighborListRequest(req NoCostGraphNeighborListRequest) error {
+	if req.VertexCount <= 0 {
+		return errors.New("vertex_count must be positive")
+	}
+	if len(req.Neighbors) != req.VertexCount {
+		return errors.New("neighbors length must match vertex_count")
+	}
+	for _, neighbors := range req.Neighbors {
+		for _, vertex := range neighbors {
+			if vertex < 0 || vertex >= req.VertexCount {
+				return fmt.Errorf("neighbor vertex %d is out of range", vertex)
+			}
+		}
+	}
+	return nil
 }
 
 func (h *NoCostGraphHandler) MakeNewNoCostUnorderedGraph(c echo.Context) error {
@@ -263,4 +282,127 @@ func (h *NoCostGraphHandler) ExecuteSCC(c echo.Context) error {
 	return c.JSON(http.StatusOK, SCCResponse{
 		SCCs: sccs,
 	})
+}
+
+func (h *NoCostGraphHandler) ExecuteDFS(c echo.Context) error {
+	var req NoCostGraphNeighborListRequest
+	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	if err := validateNoCostNeighborListRequest(req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	graph, err := h.noCostGraphUseCase.MakeNewNoCostNeighborListGraph(req.VertexCount, req.Neighbors)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	result, err := h.noCostGraphUseCase.ExecuteDFS(graph, req.StartVertex)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, DFSResponse{StartVertex: req.StartVertex, PreOrder: result.PreOrder, PostOrder: result.PostOrder})
+}
+
+func (h *NoCostGraphHandler) GetConnectedComponents(c echo.Context) error {
+	var req NoCostGraphNeighborListRequest
+	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	if err := validateNoCostNeighborListRequest(req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	graph, err := h.noCostGraphUseCase.MakeNewNoCostNeighborListGraph(req.VertexCount, req.Neighbors)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	components, err := h.noCostGraphUseCase.GetConnectedComponents(graph)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, ConnectedComponentsResponse{Components: components})
+}
+
+func (h *NoCostGraphHandler) DetectDirectedCycle(c echo.Context) error {
+	var req NoCostGraphNeighborListRequest
+	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	if err := validateNoCostNeighborListRequest(req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	graph, err := h.noCostGraphUseCase.MakeNewNoCostNeighborListGraph(req.VertexCount, req.Neighbors)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	cycle, err := h.noCostGraphUseCase.DetectDirectedCycle(graph)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, DirectedCycleResponse{HasCycle: len(cycle) > 0, Cycle: cycle})
+}
+
+func (h *NoCostGraphHandler) ExecuteUnionFind(c echo.Context) error {
+	var req NoCostGraphNeighborListRequest
+	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	if err := validateNoCostNeighborListRequest(req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	graph, err := h.noCostGraphUseCase.MakeNewNoCostNeighborListGraph(req.VertexCount, req.Neighbors)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	result, err := h.noCostGraphUseCase.ExecuteUnionFind(graph)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, UnionFindResponse{Parents: result.Parents, Components: result.Components})
+}
+
+func (h *NoCostGraphHandler) GetLowLink(c echo.Context) error {
+	var req NoCostGraphNeighborListRequest
+	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	if err := validateNoCostNeighborListRequest(req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	graph, err := h.noCostGraphUseCase.MakeNewNoCostNeighborListGraph(req.VertexCount, req.Neighbors)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	result, err := h.noCostGraphUseCase.GetLowLink(graph)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	bridges := make([]LowLinkBridgeResponse, len(result.Bridges))
+	for index, bridge := range result.Bridges {
+		bridges[index] = LowLinkBridgeResponse{From: bridge.From, To: bridge.To}
+	}
+	return c.JSON(http.StatusOK, LowLinkResponse{ArticulationPoints: result.ArticulationPoints, Bridges: bridges})
+}
+
+func (h *NoCostGraphHandler) GetLCA(c echo.Context) error {
+	var req LCARequest
+	if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	neighborRequest := NoCostGraphNeighborListRequest{VertexCount: req.VertexCount, Neighbors: req.Neighbors}
+	if err := validateNoCostNeighborListRequest(neighborRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	graph, err := h.noCostGraphUseCase.MakeNewNoCostNeighborListGraph(req.VertexCount, req.Neighbors)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	queries := make([]graphdomain.LCAQuery, len(req.Queries))
+	for index, query := range req.Queries {
+		queries[index] = graphdomain.LCAQuery{Left: query[0], Right: query[1]}
+	}
+	lcas, err := h.noCostGraphUseCase.GetLCA(graph, req.Root, queries)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, LCAResponse{Root: req.Root, LCAs: lcas})
 }

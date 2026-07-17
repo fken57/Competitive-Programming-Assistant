@@ -69,13 +69,20 @@ func main() {
 	g.POST("/graphs/unweighted/ordered/topologicalsort", noCostGraphHandler.TopologicalSort)
 	g.POST("/graphs/unweighted/ordered/scc", noCostGraphHandler.ExecuteSCC)
 	g.POST("/graphs/unweighted/BFS", noCostGraphHandler.ExecuteBFS)
+	g.POST("/graphs/unweighted/dfs", noCostGraphHandler.ExecuteDFS)
+	g.POST("/graphs/unweighted/unordered/connectedcomponents", noCostGraphHandler.GetConnectedComponents)
+	g.POST("/graphs/unweighted/ordered/cycle", noCostGraphHandler.DetectDirectedCycle)
+	g.POST("/graphs/unweighted/unordered/unionfind", noCostGraphHandler.ExecuteUnionFind)
+	g.POST("/graphs/unweighted/unordered/lowlink", noCostGraphHandler.GetLowLink)
+	g.POST("/graphs/unweighted/unordered/lca", noCostGraphHandler.GetLCA)
 
 	costGraphRepository := costgraphrepo.NewCostGraphFakeRepository(nil)
 	costGraphUseCase := costgraphusecase.NewCostGraphUseCase(costGraphRepository)
 	costGraphHandler := costgraphhandler.NewCostGraphHandler(costGraphUseCase)
 
 	g.POST("/graphs/weighted/ordered/dijkstra", costGraphHandler.ExecuteDijkstra)
-
+	g.POST("/graphs/weighted/unordered/prim", costGraphHandler.ExecutePrim)
+	g.POST("/graphs/weighted/unordered/treediameter", costGraphHandler.GetTreeDiameter)
 
 	g.POST("/users/create", userAuthHandler.Register)
 
