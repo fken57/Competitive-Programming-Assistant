@@ -25,11 +25,13 @@ export function AlgorithmFormOutline({ hasWeights, graphType, adjacentList }: Al
             {hasWeights && graphType === 'undirected' && (
                 <OrderedWeightedAlgorithm 
                     adjacentList={adjacentList} 
+                    graphType={graphType}
                 />
             )}
             {hasWeights && graphType === 'directed' && (
                 <OrderedWeightedAlgorithm 
                     adjacentList={adjacentList} 
+                    graphType={graphType}
                 />
             )}
         </div>

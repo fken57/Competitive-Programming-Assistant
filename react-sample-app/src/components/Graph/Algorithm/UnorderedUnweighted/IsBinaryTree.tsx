@@ -49,14 +49,14 @@ export function IsBinaryTree({ adjacentList }: UnweightedUnorderedAlgorithmProps
                     color="blue"
                     onClick={HandleSubmit}
                 >
-                    二分木の判定
+                    二部グラフ判定
                 </MyButton>
             </div>
 
             <div className="result-display-area">
                 <h3 className="bfs-result-title">実行結果</h3>
                 <p className="bfs-result-text">
-                    {isBinaryTree ? 'このグラフは二分木です。' : 'このグラフは二分木ではありません。'}
+                    {isBinaryTree ? 'このグラフは二部グラフです。' : 'このグラフは二部グラフではありません。'}
                 </p>
                 {error && (
                     <div className="bfs-error-message">

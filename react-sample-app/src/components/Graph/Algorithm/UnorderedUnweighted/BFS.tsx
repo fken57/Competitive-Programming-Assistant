@@ -3,15 +3,15 @@ import './BFS.css'
 import { MyButton } from '../../../common/button/Button';
 import { useUnweightedGraphApi } from '../../../../hooks/Graph/useUnweightedGraphApi';
 import { GRAPH_ENDPOINTS } from '../../../../util/NoCostGraphSendApis';
-import { VisualGraphData, VisualNode, VisualEdge } from '../../../../util/graphUtils';
 import { GraphVisualizer } from '../../GraphVisualizer';
 import { buildBFSVisualGraphData } from '../../../../util/BFSGraphJsonTransfrom';
 
 type UnweightedUnorderedAlgorithmProps = {
     adjacentList: number[][];
+    graphType?: 'undirected' | 'directed';
 };
 
-export function BFS({ adjacentList }: UnweightedUnorderedAlgorithmProps) {
+export function BFS({ adjacentList, graphType = 'undirected' }: UnweightedUnorderedAlgorithmProps) {
         
     const { postGraphData, loading, error, data } = useUnweightedGraphApi();
 
@@ -57,7 +57,7 @@ export function BFS({ adjacentList }: UnweightedUnorderedAlgorithmProps) {
                                 graphData={resultVisualData} 
                                 isDataLoaded={true}
                                 errorMessage=""
-                                graphType="undirected"
+                                graphType={graphType}
                                 nodeColorFn={(node) => {
                                     if (node.isStartNode) return '#FF0000'; // Red for start
                                     if (node.attributes?.visited) return '#4CAF50'; // Green for visited
