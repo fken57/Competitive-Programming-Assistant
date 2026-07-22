@@ -15,8 +15,8 @@ export function Dijkstra({ adjacentList, graphType }: OrderedWeightedAlgorithmPr
     const { postGraphData, loading, error, data } = useWeightedGraphApi();
 
     const resultVisualData = useMemo(() => {
-        return buildDijkstraVisualGraphData(adjacentList, data);
-    }, [data, adjacentList]);
+        return buildDijkstraVisualGraphData(adjacentList, data, graphType === 'directed' ? 'directed' : 'undirected');
+    }, [data, adjacentList, graphType]);
 
     const HandleSubmit = async () => {
         const payload = {

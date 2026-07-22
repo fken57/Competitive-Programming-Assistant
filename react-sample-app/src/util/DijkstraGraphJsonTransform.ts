@@ -7,7 +7,11 @@ export interface DijkstraRawApiResponse {
     previous: number[];
 }
 
-export function buildDijkstraVisualGraphData(adjacentList: WeightedEdge[][], data: DijkstraRawApiResponse | null): VisualGraphData | null {
+export function buildDijkstraVisualGraphData(
+    adjacentList: WeightedEdge[][],
+    data: DijkstraRawApiResponse | null,
+    graphType: 'undirected' | 'directed'
+): VisualGraphData | null {
     if (!data) return null;
     
     const N = adjacentList.length;
@@ -33,15 +37,21 @@ export function buildDijkstraVisualGraphData(adjacentList: WeightedEdge[][], dat
     });
 
     const edges: VisualEdge[] = [];
+    const seenEdges = new Set<string>();
     
     // For directed graphs, we add edges directly
     for (let u = 0; u < N; u++) {
         for (const neighbor of adjacentList[u]) {
             const v = neighbor.to;
+            const edgeId = graphType === 'directed'
+                ? `${u}-${v}`
+                : [u, v].sort((left, right) => left - right).join('-');
+            if (seenEdges.has(edgeId)) continue;
+            seenEdges.add(edgeId);
             const visualEdge: VisualEdge = { source: u, target: v, weight: neighbor.weight };
             
             // Highlight the shortest path edges
-            if (data.previous[v] === u && data.distances[v] !== -1) {
+            if ((data.previous[v] === u || (graphType === 'undirected' && data.previous[u] === v)) && data.distances[v] !== -1) {
                 visualEdge.isShortestPath = true; 
             }
             edges.push(visualEdge);
