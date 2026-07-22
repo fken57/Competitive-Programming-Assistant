@@ -71,10 +71,16 @@ export function TopologicalSort({ adjacentList }: UnweightedOrderedAlgorithmProp
                                 isDataLoaded={true}
                                 errorMessage=""
                                 graphType="directed"
+                                layoutMode={data.sortable ? 'linear' : 'force'}
                                 nodeColorFn={(node) => {
                                     if (node.attributes?.hasOrder) return '#9C27B0'; // Purple for sorted nodes
+                                    if (node.attributes?.inCycle) return '#FDE68A';
                                     return node.color || '#42A5F5'; // Default blue
                                 }}
+                                nodeStrokeColorFn={(node) => node.attributes?.inCycle ? '#DC2626' : '#666'}
+                                nodeStrokeWidthFn={(node) => node.attributes?.inCycle ? 5 : 2}
+                                edgeColorFn={(edge) => edge.attributes?.inCycle ? '#DC2626' : '#9CA3AF'}
+                                edgeWidthFn={(edge) => edge.attributes?.inCycle ? 5 : 2}
                             />
                         </div>
                         <div className="bfs-debug-info">
