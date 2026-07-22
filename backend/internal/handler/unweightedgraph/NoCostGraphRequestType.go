@@ -47,6 +47,7 @@ type DFSResponse struct {
 	StartVertex int   `json:"start_vertex"`
 	PreOrder    []int `json:"pre_order"`
 	PostOrder   []int `json:"post_order"`
+	Parents     []int `json:"parents"`
 }
 
 type ConnectedComponentsResponse struct {

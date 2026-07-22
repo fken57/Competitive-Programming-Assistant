@@ -303,7 +303,12 @@ func (h *NoCostGraphHandler) ExecuteDFS(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusOK, DFSResponse{StartVertex: req.StartVertex, PreOrder: result.PreOrder, PostOrder: result.PostOrder})
+	return c.JSON(http.StatusOK, DFSResponse{
+		StartVertex: req.StartVertex,
+		PreOrder:    result.PreOrder,
+		PostOrder:   result.PostOrder,
+		Parents:     result.Parents,
+	})
 }
 
 func (h *NoCostGraphHandler) GetConnectedComponents(c echo.Context) error {
