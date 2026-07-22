@@ -1,54 +1,74 @@
 import { VisualGraphData, VisualNode, VisualEdge } from './graphUtils';
 import { GraphNeighbor } from './BFSGraphJsonTransfrom';
 
-export interface SCCRawApiResponse{
-    sccs: number[][];
+export interface SCCRawApiResponse {
+  sccs: number[][];
 }
 
-export function buildSCCGraphVisualData(adjacentList: GraphNeighbor[][],data: SCCRawApiResponse | null): VisualGraphData | null {
-    if (!data || !data.sccs) return null;
+export interface SCCVisualGraphs {
+  condensationGraph: VisualGraphData;
+  originalGraph: VisualGraphData;
+}
 
-    const nodes: VisualNode[] = [];
-    const edges: VisualEdge[] = [];
+export function buildSCCVisualGraphs(
+  adjacentList: GraphNeighbor[][],
+  data: SCCRawApiResponse | null
+): SCCVisualGraphs | null {
+  if (!data?.sccs) return null;
 
-    // Create nodes
-    for (let i = 0; i < data.sccs.length; i++){
-        let sccLabel : string = `SCC ${i + 1}:`;
-        for (const vertex of data.sccs[i]) {
-            sccLabel+= ` ${vertex + 1}`;
-        }
-        nodes.push({
-            id: i+1,
-            label: sccLabel,
-            color: '#42A5F5'
-        });
-    }
+  const componentByVertex = Array(adjacentList.length).fill(-1);
+  data.sccs.forEach((component, componentIndex) => {
+    component.forEach(vertex => {
+      componentByVertex[vertex] = componentIndex;
+    });
+  });
 
-    let includeInSCC : number[] = [...Array(adjacentList.length).fill(0)];
+  const condensationNodes: VisualNode[] = data.sccs.map((component, componentIndex) => ({
+    id: componentIndex,
+    label: `SCC ${componentIndex + 1}: ${component.map(vertex => vertex + 1).join(', ')}`,
+    attributes: { componentIndex, orderIndex: componentIndex },
+  }));
+  const condensationEdges: VisualEdge[] = [];
+  const seenCondensationEdges = new Set<string>();
+  adjacentList.forEach((neighbors, source) => {
+    neighbors.forEach(neighbor => {
+      const target = typeof neighbor === 'number' ? neighbor : neighbor.to;
+      const sourceComponent = componentByVertex[source];
+      const targetComponent = componentByVertex[target];
+      if (sourceComponent === targetComponent) return;
+      const id = `${sourceComponent}-${targetComponent}`;
+      if (seenCondensationEdges.has(id)) return;
+      seenCondensationEdges.add(id);
+      condensationEdges.push({ source: sourceComponent, target: targetComponent });
+    });
+  });
 
-    for(let i = 0; i < data.sccs.length; i++){
-        for(const vertex of data.sccs[i]){
-            includeInSCC[vertex] = i;
-        }
-    }
+  const originalNodes: VisualNode[] = Array.from({ length: adjacentList.length }, (_, vertex) => ({
+    id: vertex,
+    label: (vertex + 1).toString(),
+    attributes: { componentIndex: componentByVertex[vertex] },
+  }));
+  const originalEdges: VisualEdge[] = [];
+  const seenOriginalEdges = new Set<string>();
+  adjacentList.forEach((neighbors, source) => {
+    neighbors.forEach(neighbor => {
+      const target = typeof neighbor === 'number' ? neighbor : neighbor.to;
+      const id = `${source}-${target}`;
+      if (seenOriginalEdges.has(id)) return;
+      seenOriginalEdges.add(id);
+      originalEdges.push({ source, target });
+    });
+  });
 
-    // Create edges
-    for (let i = 0; i < data.sccs.length; i++) {
-        for (const vertex of data.sccs[i]) {
-            for (const neighbor of adjacentList[vertex]) {
-                const v = typeof neighbor === 'number' ? neighbor : neighbor.to;
-                if (includeInSCC[v] !== includeInSCC[vertex]) {
-                    edges.push({
-                        source: i + 1,
-                        target: includeInSCC[v] + 1
-                    });
-                }
-            }
-        }
-    }
+  return {
+    condensationGraph: { nodes: condensationNodes, edges: condensationEdges },
+    originalGraph: { nodes: originalNodes, edges: originalEdges },
+  };
+}
 
-    return {
-        nodes,
-        edges
-    };
+export function buildSCCGraphVisualData(
+  adjacentList: GraphNeighbor[][],
+  data: SCCRawApiResponse | null
+): VisualGraphData | null {
+  return buildSCCVisualGraphs(adjacentList, data)?.condensationGraph ?? null;
 }

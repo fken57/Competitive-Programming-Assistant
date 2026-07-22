@@ -19,6 +19,9 @@ func TestDFS(t *testing.T) {
 	if !reflect.DeepEqual(result.PostOrder, []int{3, 1, 2, 0}) {
 		t.Fatalf("postorder = %v", result.PostOrder)
 	}
+	if !reflect.DeepEqual(result.Parents, []int{-1, 0, 0, 1}) {
+		t.Fatalf("parents = %v", result.Parents)
+	}
 }
 
 func TestConnectedComponentsAndUnionFind(t *testing.T) {

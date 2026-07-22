@@ -32,6 +32,8 @@ export function IsTree({ adjacentList }: UnweightedUnorderedAlgorithmProps) {
         }
     };
 
+    const componentColors = ['#BFDBFE', '#BBF7D0', '#FDE68A', '#E9D5FF', '#FED7AA', '#FBCFE8'];
+
 
     return(
         <div className="is-binary-tree-algorithm-container">
@@ -64,6 +66,15 @@ export function IsTree({ adjacentList }: UnweightedUnorderedAlgorithmProps) {
                                 isDataLoaded={true}
                                 errorMessage=""
                                 graphType="undirected"
+                                nodeColorFn={(node) => {
+                                    if (data.is_tree) return '#FFFFFF';
+                                    const componentIndex = node.attributes?.componentIndex ?? 0;
+                                    return componentColors[componentIndex % componentColors.length];
+                                }}
+                                nodeStrokeColorFn={(node) => node.attributes?.inCycle ? '#DC2626' : '#666'}
+                                nodeStrokeWidthFn={(node) => node.attributes?.inCycle ? 5 : 2}
+                                edgeColorFn={(edge) => edge.attributes?.inCycle ? '#DC2626' : '#999'}
+                                edgeWidthFn={(edge) => edge.attributes?.inCycle ? 5 : 2}
                             />
                         </div>
                         <div className="bfs-debug-info">

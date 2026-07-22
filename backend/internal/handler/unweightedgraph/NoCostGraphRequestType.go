@@ -20,6 +20,7 @@ type IsBinaryTreeResponse struct {
 	IsBinaryTree bool  `json:"is_binary_tree"`
 	GroupOne     []int `json:"group_one"`
 	GroupTwo     []int `json:"group_two"`
+	OddCycle     []int `json:"odd_cycle"`
 }
 
 type TreeDistanceResponse struct {
@@ -29,7 +30,9 @@ type TreeDistanceResponse struct {
 }
 
 type TopologicalSortResponse struct {
+	Sortable bool  `json:"sortable"`
 	Vertices []int `json:"vertices"`
+	Cycle    []int `json:"cycle"`
 }
 
 type IsTreeResponse struct {
@@ -46,6 +49,7 @@ type DFSResponse struct {
 	StartVertex int   `json:"start_vertex"`
 	PreOrder    []int `json:"pre_order"`
 	PostOrder   []int `json:"post_order"`
+	Parents     []int `json:"parents"`
 }
 
 type ConnectedComponentsResponse struct {

@@ -152,7 +152,7 @@ func (h *NoCostGraphHandler) ExecuteIsBinaryTree(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "Graph not found"})
 	}
 
-	isBinaryTree, groups1, groups2, err := h.noCostGraphUseCase.ExecuteIsBinaryTree(graph)
+	isBinaryTree, groups1, groups2, oddCycle, err := h.noCostGraphUseCase.ExecuteIsBinaryTree(graph)
 	if err != nil {
 		if err == errors.New("the graph is not an undirected graph") {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
@@ -165,6 +165,7 @@ func (h *NoCostGraphHandler) ExecuteIsBinaryTree(c echo.Context) error {
 			IsBinaryTree: false,
 			GroupOne:     nil,
 			GroupTwo:     nil,
+			OddCycle:     oddCycle,
 		})
 	}
 
@@ -219,13 +220,15 @@ func (h *NoCostGraphHandler) TopologicalSort(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "Graph not found"})
 	}
 
-	vertices, err := h.noCostGraphUseCase.TopologicalSort(graph)
+	result, err := h.noCostGraphUseCase.TopologicalSort(graph)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, TopologicalSortResponse{
-		Vertices: vertices,
+		Sortable: result.Sortable,
+		Vertices: result.Vertices,
+		Cycle:    result.Cycle,
 	})
 }
 
@@ -302,7 +305,12 @@ func (h *NoCostGraphHandler) ExecuteDFS(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusOK, DFSResponse{StartVertex: req.StartVertex, PreOrder: result.PreOrder, PostOrder: result.PostOrder})
+	return c.JSON(http.StatusOK, DFSResponse{
+		StartVertex: req.StartVertex,
+		PreOrder:    result.PreOrder,
+		PostOrder:   result.PostOrder,
+		Parents:     result.Parents,
+	})
 }
 
 func (h *NoCostGraphHandler) GetConnectedComponents(c echo.Context) error {

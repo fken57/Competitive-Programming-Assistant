@@ -16,8 +16,8 @@ export function BFS({ adjacentList, graphType = 'undirected' }: UnweightedUnorde
     const { postGraphData, loading, error, data } = useUnweightedGraphApi();
 
     const resultVisualData = useMemo(() => {
-        return buildBFSVisualGraphData(adjacentList, data);
-    }, [data, adjacentList]);
+        return buildBFSVisualGraphData(adjacentList, data, graphType);
+    }, [data, adjacentList, graphType]);
 
     const HandleSubmit = async () => {
         const payload = {
