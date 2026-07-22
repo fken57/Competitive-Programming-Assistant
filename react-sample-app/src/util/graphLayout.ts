@@ -1,4 +1,4 @@
-import { VisualNode } from './graphUtils';
+import { VisualEdge, VisualNode } from './graphUtils';
 
 export type GraphLayoutMode = 'force' | 'tree' | 'linear';
 
@@ -7,6 +7,26 @@ export type PositionedVisualNode = VisualNode & {
   y?: number;
   fx?: number | null;
   fy?: number | null;
+};
+
+export type PositionedVisualEdge = Omit<VisualEdge, 'source' | 'target'> & {
+  source: number | PositionedVisualNode;
+  target: number | PositionedVisualNode;
+};
+
+export const resolveStaticGraphLinks = (
+  nodes: PositionedVisualNode[],
+  links: PositionedVisualEdge[]
+) => {
+  const nodeById = new Map(nodes.map(node => [node.id, node]));
+  links.forEach(link => {
+    if (typeof link.source === 'number') {
+      link.source = nodeById.get(link.source) ?? link.source;
+    }
+    if (typeof link.target === 'number') {
+      link.target = nodeById.get(link.target) ?? link.target;
+    }
+  });
 };
 
 const positionNode = (node: PositionedVisualNode, x: number, y: number) => {

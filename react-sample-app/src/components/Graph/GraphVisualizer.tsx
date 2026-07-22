@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import { VisualGraphData, VisualNode, VisualEdge } from '../../util/graphUtils';
-import { applyStaticGraphLayout, GraphLayoutMode, PositionedVisualNode } from '../../util/graphLayout';
+import { applyStaticGraphLayout, GraphLayoutMode, PositionedVisualEdge, PositionedVisualNode, resolveStaticGraphLinks } from '../../util/graphLayout';
 import './GraphVisualizer.css';
 
 type GraphVisualizerProps = {
@@ -46,7 +46,7 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
 
     // Deep copy nodes and edges for D3 simulation to mutate without affecting React state
     const nodes: PositionedVisualNode[] = graphData.nodes.map(n => ({ ...n }));
-    const links = graphData.edges.map(e => ({ ...e }));
+    const links: PositionedVisualEdge[] = graphData.edges.map(e => ({ ...e }));
 
     // --- D3 Setup ---
     const width = svgRef.current.clientWidth || 800;
@@ -82,6 +82,7 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
         .force("y", d3.forceY(height / 2).strength(0.05));
     } else {
       applyStaticGraphLayout(nodes, width, height, layoutMode);
+      resolveStaticGraphLinks(nodes, links);
       simulation.stop();
     }
 

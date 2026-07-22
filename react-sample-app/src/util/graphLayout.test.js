@@ -1,4 +1,4 @@
-import { applyStaticGraphLayout } from './graphLayout';
+import { applyStaticGraphLayout, resolveStaticGraphLinks } from './graphLayout';
 
 test('linear layout follows orderIndex', () => {
   const nodes = [
@@ -26,4 +26,16 @@ test('tree layout groups nodes by depth and preserves level order', () => {
   expect(nodes[0]).toMatchObject({ x: 150, y: 50 });
   expect(nodes[2]).toMatchObject({ x: 60, y: 150 });
   expect(nodes[1]).toMatchObject({ x: 240, y: 150 });
+});
+
+test('static links resolve numeric endpoint ids to positioned nodes', () => {
+  const nodes = [{ id: 0, label: '1' }, { id: 1, label: '2' }];
+  const links = [{ source: 0, target: 1 }];
+  applyStaticGraphLayout(nodes, 300, 200, 'linear');
+
+  resolveStaticGraphLinks(nodes, links);
+
+  expect(links[0].source).toBe(nodes[0]);
+  expect(links[0].target).toBe(nodes[1]);
+  expect(links[0].source.x).toBe(60);
 });
