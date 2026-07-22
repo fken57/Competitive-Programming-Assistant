@@ -49,16 +49,16 @@ func (g *NoCostGraphUseCase) ExecuteBFS(graph graphdatabase.UnweightedGraph, sta
 	return visitedVertices, nil
 }
 
-func (g *NoCostGraphUseCase) ExecuteIsBinaryTree(graph graphdatabase.UnweightedGraph) (bool, []int, []int, error) {
+func (g *NoCostGraphUseCase) ExecuteIsBinaryTree(graph graphdatabase.UnweightedGraph) (bool, []int, []int, []int, error) {
 	if !unweightedgraph.IsUndirectedGraph(graph) {
-		return false, nil, nil, errors.New("the graph is not an undirected graph")
+		return false, nil, nil, nil, errors.New("the graph is not an undirected graph")
 	}
 	isBinaryTree := unweightedgraph.IsBinaryGraph(graph)
 
 	var groups1, group2 []int
 
 	if !isBinaryTree.IsBinary {
-		return false, nil, nil, nil
+		return false, nil, nil, isBinaryTree.OddCycle, nil
 	}
 
 	for i := 0; i < graph.VertexSize(); i++ {
@@ -69,7 +69,7 @@ func (g *NoCostGraphUseCase) ExecuteIsBinaryTree(graph graphdatabase.UnweightedG
 		}
 	}
 
-	return isBinaryTree.IsBinary, groups1, group2, nil
+	return isBinaryTree.IsBinary, groups1, group2, nil, nil
 }
 
 func (g *NoCostGraphUseCase) GetTreeDistance(graph graphdatabase.UnweightedGraph) (unweightedgraph.TreeDistance, error) {

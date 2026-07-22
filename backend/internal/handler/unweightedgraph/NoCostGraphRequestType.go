@@ -20,6 +20,7 @@ type IsBinaryTreeResponse struct {
 	IsBinaryTree bool  `json:"is_binary_tree"`
 	GroupOne     []int `json:"group_one"`
 	GroupTwo     []int `json:"group_two"`
+	OddCycle     []int `json:"odd_cycle"`
 }
 
 type TreeDistanceResponse struct {

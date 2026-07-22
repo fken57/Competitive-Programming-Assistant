@@ -152,7 +152,7 @@ func (h *NoCostGraphHandler) ExecuteIsBinaryTree(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "Graph not found"})
 	}
 
-	isBinaryTree, groups1, groups2, err := h.noCostGraphUseCase.ExecuteIsBinaryTree(graph)
+	isBinaryTree, groups1, groups2, oddCycle, err := h.noCostGraphUseCase.ExecuteIsBinaryTree(graph)
 	if err != nil {
 		if err == errors.New("the graph is not an undirected graph") {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
@@ -165,6 +165,7 @@ func (h *NoCostGraphHandler) ExecuteIsBinaryTree(c echo.Context) error {
 			IsBinaryTree: false,
 			GroupOne:     nil,
 			GroupTwo:     nil,
+			OddCycle:     oddCycle,
 		})
 	}
 
