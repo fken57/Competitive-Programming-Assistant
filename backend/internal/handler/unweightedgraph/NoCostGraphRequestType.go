@@ -33,7 +33,9 @@ type TopologicalSortResponse struct {
 }
 
 type IsTreeResponse struct {
-	IsTree bool `json:"is_tree"`
+	IsTree     bool    `json:"is_tree"`
+	Cycle      []int   `json:"cycle"`
+	Components [][]int `json:"components"`
 }
 
 type SCCResponse struct {

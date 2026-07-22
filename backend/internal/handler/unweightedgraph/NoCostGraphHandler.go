@@ -245,7 +245,7 @@ func (h *NoCostGraphHandler) ExecuteIsTree(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "Graph not found"})
 	}
 
-	isTree, err := h.noCostGraphUseCase.ExecuteIsTree(graph)
+	analysis, err := h.noCostGraphUseCase.ExecuteIsTree(graph)
 	if err != nil {
 		if err.Error() == "the graph is not an undirected graph" {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
@@ -254,7 +254,9 @@ func (h *NoCostGraphHandler) ExecuteIsTree(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, IsTreeResponse{
-		IsTree: isTree,
+		IsTree:     analysis.IsTree,
+		Cycle:      analysis.Cycle,
+		Components: analysis.Components,
 	})
 }
 
