@@ -87,11 +87,11 @@ func (g *NoCostGraphUseCase) TopologicalSort(graph graphdatabase.UnweightedGraph
 	return unweightedgraph.TopologicalSort(graph)
 }
 
-func (g *NoCostGraphUseCase) ExecuteIsTree(graph graphdatabase.UnweightedGraph) (bool, error) {
+func (g *NoCostGraphUseCase) ExecuteIsTree(graph graphdatabase.UnweightedGraph) (unweightedgraph.TreeAnalysis, error) {
 	if !unweightedgraph.IsUndirectedGraph(graph) {
-		return false, errors.New("the graph is not an undirected graph")
+		return unweightedgraph.TreeAnalysis{}, errors.New("the graph is not an undirected graph")
 	}
-	return unweightedgraph.IsTree(graph), nil
+	return unweightedgraph.AnalyzeTree(graph), nil
 }
 
 func (g *NoCostGraphUseCase) ExecuteSCC(graph graphdatabase.UnweightedGraph) ([][]int, error) {
