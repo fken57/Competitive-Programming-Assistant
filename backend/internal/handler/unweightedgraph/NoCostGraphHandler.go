@@ -220,13 +220,15 @@ func (h *NoCostGraphHandler) TopologicalSort(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "Graph not found"})
 	}
 
-	vertices, err := h.noCostGraphUseCase.TopologicalSort(graph)
+	result, err := h.noCostGraphUseCase.TopologicalSort(graph)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, TopologicalSortResponse{
-		Vertices: vertices,
+		Sortable: result.Sortable,
+		Vertices: result.Vertices,
+		Cycle:    result.Cycle,
 	})
 }
 
