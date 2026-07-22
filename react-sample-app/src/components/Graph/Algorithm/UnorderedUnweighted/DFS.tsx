@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import './IsBinaryTree.css';
 import { MyButton } from '../../../common/button/Button';
 import { useUnweightedGraphApi } from '../../../../hooks/Graph/useUnweightedGraphApi';
 import { GRAPH_ENDPOINTS } from '../../../../util/NoCostGraphSendApis';
+import { GraphVisualizer } from '../../GraphVisualizer';
+import { buildDFSVisualGraphData } from '../../../../util/DFSGraphJsonTransform';
 
 type DFSProps = {
     adjacentList: number[][];
@@ -11,6 +13,10 @@ type DFSProps = {
 
 export function DFS({ adjacentList, graphType = 'undirected' }: DFSProps) {
     const { postGraphData, loading, error, data } = useUnweightedGraphApi();
+    const resultVisualData = useMemo(
+        () => buildDFSVisualGraphData(adjacentList, data, graphType),
+        [adjacentList, data, graphType]
+    );
 
     const handleSubmit = async () => {
         await postGraphData(GRAPH_ENDPOINTS.DFS, {
@@ -28,6 +34,23 @@ export function DFS({ adjacentList, graphType = 'undirected' }: DFSProps) {
                 <MyButton color="blue" onClick={handleSubmit}>{loading ? '実行中...' : `DFSを実行（${graphType === 'directed' ? '有向' : '無向'}）`}</MyButton>
             </div>
             <div className="result-display-area">
+                {resultVisualData && (
+                    <div className="bfs-visualizer-wrapper">
+                        <div className="bfs-visualizer-box">
+                            <GraphVisualizer
+                                graphData={resultVisualData}
+                                isDataLoaded={true}
+                                errorMessage=""
+                                graphType={graphType}
+                                layoutMode="tree"
+                                nodeColorFn={(node) => node.attributes?.visited ? '#BBF7D0' : '#E5E7EB'}
+                                edgeColorFn={(edge) => edge.attributes?.isTreeEdge ? '#2563EB' : '#9CA3AF'}
+                                edgeWidthFn={(edge) => edge.attributes?.isTreeEdge ? 4 : 1.5}
+                                edgeDashArrayFn={(edge) => edge.attributes?.isTreeEdge ? undefined : '6 4'}
+                            />
+                        </div>
+                    </div>
+                )}
                 <h3 className="bfs-result-title">実行結果</h3>
                 {data && <><p className="bfs-result-text">行きがけ順: {vertices(data.pre_order)}</p><p className="bfs-result-text">帰りがけ順: {vertices(data.post_order)}</p></>}
                 {error && <div className="bfs-error-message">エラーが発生しました: {error.message}</div>}
