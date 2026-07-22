@@ -63,10 +63,13 @@ export function UnweightedTreeDistance({ adjacentList }: UnweightedUnorderedAlgo
                                 isDataLoaded={true}
                                 errorMessage=""
                                 graphType="undirected"
+                                layoutMode="tree"
                                 nodeColorFn={(node) => {
                                     if (node.attributes?.isEndpoint) return '#FF9800'; // Orange for endpoints
                                     return node.color || '#42A5F5'; // Default blue
                                 }}
+                                edgeColorFn={(edge) => edge.attributes?.inDiameterPath ? '#DC2626' : '#9CA3AF'}
+                                edgeWidthFn={(edge) => edge.attributes?.inDiameterPath ? 5 : 2}
                             />
                         </div>
                         <div className="bfs-debug-info">
