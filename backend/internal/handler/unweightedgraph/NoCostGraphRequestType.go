@@ -17,9 +17,10 @@ type BFSResponse struct {
 }
 
 type IsBinaryTreeResponse struct {
-	IsBinaryTree bool `json:"is_binary_tree"`
-	GroupOne []int `json:"group_one"`
-	GroupTwo []int `json:"group_two"`
+	IsBinaryTree bool  `json:"is_binary_tree"`
+	GroupOne     []int `json:"group_one"`
+	GroupTwo     []int `json:"group_two"`
+	OddCycle     []int `json:"odd_cycle"`
 }
 
 type TreeDistanceResponse struct {
@@ -28,14 +29,61 @@ type TreeDistanceResponse struct {
 	Vertex2 int `json:"vertex2"`
 }
 
-type TopologicalSortResponse struct{
+type TopologicalSortResponse struct {
+	Sortable bool  `json:"sortable"`
 	Vertices []int `json:"vertices"`
+	Cycle    []int `json:"cycle"`
 }
 
 type IsTreeResponse struct {
-	IsTree bool `json:"is_tree"`
+	IsTree     bool    `json:"is_tree"`
+	Cycle      []int   `json:"cycle"`
+	Components [][]int `json:"components"`
 }
 
 type SCCResponse struct {
 	SCCs [][]int `json:"sccs"`
+}
+
+type DFSResponse struct {
+	StartVertex int   `json:"start_vertex"`
+	PreOrder    []int `json:"pre_order"`
+	PostOrder   []int `json:"post_order"`
+	Parents     []int `json:"parents"`
+}
+
+type ConnectedComponentsResponse struct {
+	Components [][]int `json:"components"`
+}
+
+type DirectedCycleResponse struct {
+	HasCycle bool  `json:"has_cycle"`
+	Cycle    []int `json:"cycle"`
+}
+
+type UnionFindResponse struct {
+	Parents    []int   `json:"parents"`
+	Components [][]int `json:"components"`
+}
+
+type LowLinkBridgeResponse struct {
+	From int `json:"from"`
+	To   int `json:"to"`
+}
+
+type LowLinkResponse struct {
+	ArticulationPoints []int                   `json:"articulation_points"`
+	Bridges            []LowLinkBridgeResponse `json:"bridges"`
+}
+
+type LCARequest struct {
+	VertexCount int      `json:"vertex_count"`
+	Neighbors   [][]int  `json:"neighbors"`
+	Root        int      `json:"root"`
+	Queries     [][2]int `json:"queries"`
+}
+
+type LCAResponse struct {
+	Root int   `json:"root"`
+	LCAs []int `json:"lcas"`
 }

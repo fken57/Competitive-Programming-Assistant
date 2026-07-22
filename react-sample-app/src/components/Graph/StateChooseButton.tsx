@@ -12,7 +12,7 @@ export function StateChooseToggle({ graphType, setGraphType, hasWeights, setHasW
     return (
         <div className='toggle-alignment'>
             <GraphTypeChoice graphType={graphType} setGraphType={setGraphType} />
-            {graphType !== 'functional' && <WeightChoice hasWeights={hasWeights} setHasWeights={setHasWeights} />}
+            <WeightChoice hasWeights={hasWeights} setHasWeights={setHasWeights} />
         </div>
     );
 }
@@ -43,16 +43,6 @@ function GraphTypeChoice({ graphType, setGraphType }: { graphType: string; setGr
                         onChange={() => setGraphType('directed')} 
                     />
                     有向
-                </label>
-                <label>
-                    <input 
-                        type="radio" 
-                        name="state-tab" 
-                        className="tab-3-group" 
-                        checked={graphType === 'functional'} 
-                        onChange={() => setGraphType('functional')} 
-                    />
-                    Functional
                 </label>
             </div>
         </div>

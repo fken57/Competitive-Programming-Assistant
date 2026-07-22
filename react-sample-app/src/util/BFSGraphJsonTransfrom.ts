@@ -14,7 +14,11 @@ export interface BFSRawApiResponse {
 
 export type GraphNeighbor = number | { to: number; weight?: number };
 
-export function buildBFSVisualGraphData(adjacentList: GraphNeighbor[][], data: BFSRawApiResponse | null): VisualGraphData | null {
+export function buildBFSVisualGraphData(
+    adjacentList: GraphNeighbor[][],
+    data: BFSRawApiResponse | null,
+    graphType: 'undirected' | 'directed' = 'undirected'
+): VisualGraphData | null {
     if (!data) return null;
     
     const N = adjacentList.length;
@@ -43,7 +47,9 @@ export function buildBFSVisualGraphData(adjacentList: GraphNeighbor[][], data: B
     for (let u = 0; u < N; u++) {
         for (const neighbor of adjacentList[u]) {
             const v = typeof neighbor === 'number' ? neighbor : neighbor.to;
-            const edgeId = [u, v].sort().join('-');
+            const edgeId = graphType === 'directed'
+                ? `${u}-${v}`
+                : [u, v].sort((left, right) => left - right).join('-');
             if (!seenEdges.has(edgeId)) {
                 seenEdges.add(edgeId);
                 const visualEdge: VisualEdge = { source: u, target: v };

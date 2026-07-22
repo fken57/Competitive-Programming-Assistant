@@ -49,16 +49,16 @@ func (g *NoCostGraphUseCase) ExecuteBFS(graph graphdatabase.UnweightedGraph, sta
 	return visitedVertices, nil
 }
 
-func (g *NoCostGraphUseCase) ExecuteIsBinaryTree(graph graphdatabase.UnweightedGraph) ( bool,  []int,[]int, error) {
+func (g *NoCostGraphUseCase) ExecuteIsBinaryTree(graph graphdatabase.UnweightedGraph) (bool, []int, []int, []int, error) {
 	if !unweightedgraph.IsUndirectedGraph(graph) {
-		return false, nil, nil, errors.New("the graph is not an undirected graph")
+		return false, nil, nil, nil, errors.New("the graph is not an undirected graph")
 	}
 	isBinaryTree := unweightedgraph.IsBinaryGraph(graph)
 
 	var groups1, group2 []int
 
-	if(!isBinaryTree.IsBinary) {
-		return false , nil ,nil, nil
+	if !isBinaryTree.IsBinary {
+		return false, nil, nil, isBinaryTree.OddCycle, nil
 	}
 
 	for i := 0; i < graph.VertexSize(); i++ {
@@ -69,7 +69,7 @@ func (g *NoCostGraphUseCase) ExecuteIsBinaryTree(graph graphdatabase.UnweightedG
 		}
 	}
 
-	return isBinaryTree.IsBinary, groups1, group2, nil
+	return isBinaryTree.IsBinary, groups1, group2, nil, nil
 }
 
 func (g *NoCostGraphUseCase) GetTreeDistance(graph graphdatabase.UnweightedGraph) (unweightedgraph.TreeDistance, error) {
@@ -83,18 +83,68 @@ func (g *NoCostGraphUseCase) GetTreeDistance(graph graphdatabase.UnweightedGraph
 	return treeDistance, nil
 }
 
-func (g *NoCostGraphUseCase) TopologicalSort(graph graphdatabase.UnweightedGraph) ([]int, error) {
-	return unweightedgraph.TopologicalSort(graph)
+func (g *NoCostGraphUseCase) TopologicalSort(graph graphdatabase.UnweightedGraph) (unweightedgraph.TopologicalSortAnalysis, error) {
+	return unweightedgraph.AnalyzeTopologicalSort(graph), nil
 }
 
-func (g *NoCostGraphUseCase) ExecuteIsTree(graph graphdatabase.UnweightedGraph) (bool, error) {
+func (g *NoCostGraphUseCase) ExecuteIsTree(graph graphdatabase.UnweightedGraph) (unweightedgraph.TreeAnalysis, error) {
 	if !unweightedgraph.IsUndirectedGraph(graph) {
-		return false, errors.New("the graph is not an undirected graph")
+		return unweightedgraph.TreeAnalysis{}, errors.New("the graph is not an undirected graph")
 	}
-	return unweightedgraph.IsTree(graph), nil
+	return unweightedgraph.AnalyzeTree(graph), nil
 }
 
 func (g *NoCostGraphUseCase) ExecuteSCC(graph graphdatabase.UnweightedGraph) ([][]int, error) {
 	sccs := unweightedgraph.SCC(graph)
 	return sccs, nil
+}
+
+func (g *NoCostGraphUseCase) ExecuteDFS(graph graphdatabase.UnweightedGraph, startVertex int) (unweightedgraph.DFSResult, error) {
+	if startVertex < 0 || startVertex >= graph.VertexSize() {
+		return unweightedgraph.DFSResult{}, errors.New("start vertex is out of range")
+	}
+	return unweightedgraph.DFS(graph, startVertex), nil
+}
+
+func (g *NoCostGraphUseCase) GetConnectedComponents(graph graphdatabase.UnweightedGraph) ([][]int, error) {
+	if !unweightedgraph.IsUndirectedGraph(graph) {
+		return nil, errors.New("the graph is not an undirected graph")
+	}
+	return unweightedgraph.ConnectedComponents(graph), nil
+}
+
+func (g *NoCostGraphUseCase) DetectDirectedCycle(graph graphdatabase.UnweightedGraph) ([]int, error) {
+	return unweightedgraph.FindDirectedCycle(graph), nil
+}
+
+func (g *NoCostGraphUseCase) ExecuteUnionFind(graph graphdatabase.UnweightedGraph) (unweightedgraph.UnionFindResult, error) {
+	if !unweightedgraph.IsUndirectedGraph(graph) {
+		return unweightedgraph.UnionFindResult{}, errors.New("the graph is not an undirected graph")
+	}
+	return unweightedgraph.UnionFindComponents(graph), nil
+}
+
+func (g *NoCostGraphUseCase) GetLowLink(graph graphdatabase.UnweightedGraph) (unweightedgraph.LowLinkResult, error) {
+	if !unweightedgraph.IsUndirectedGraph(graph) {
+		return unweightedgraph.LowLinkResult{}, errors.New("the graph is not an undirected graph")
+	}
+	return unweightedgraph.LowLink(graph), nil
+}
+
+func (g *NoCostGraphUseCase) GetLCA(graph graphdatabase.UnweightedGraph, root int, queries []unweightedgraph.LCAQuery) ([]int, error) {
+	if !unweightedgraph.IsUndirectedGraph(graph) {
+		return nil, errors.New("the graph is not an undirected graph")
+	}
+	if !unweightedgraph.IsTree(graph) {
+		return nil, errors.New("the graph is not a tree")
+	}
+	if root < 0 || root >= graph.VertexSize() {
+		return nil, errors.New("root vertex is out of range")
+	}
+	for _, query := range queries {
+		if query.Left < 0 || query.Left >= graph.VertexSize() || query.Right < 0 || query.Right >= graph.VertexSize() {
+			return nil, errors.New("query vertex is out of range")
+		}
+	}
+	return unweightedgraph.LowestCommonAncestors(graph, root, queries), nil
 }

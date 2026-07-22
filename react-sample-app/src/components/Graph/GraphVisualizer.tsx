@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import { VisualGraphData, VisualNode, VisualEdge } from '../../util/graphUtils';
+import { applyStaticGraphLayout, GraphLayoutMode, PositionedVisualEdge, PositionedVisualNode, resolveStaticGraphLinks } from '../../util/graphLayout';
 import './GraphVisualizer.css';
 
 type GraphVisualizerProps = {
@@ -10,6 +11,11 @@ type GraphVisualizerProps = {
   graphType: string; // 'directed' or 'undirected'
   nodeColorFn?: (node: VisualNode) => string;
   edgeColorFn?: (edge: VisualEdge) => string;
+  nodeStrokeColorFn?: (node: VisualNode) => string;
+  nodeStrokeWidthFn?: (node: VisualNode) => number;
+  edgeWidthFn?: (edge: VisualEdge) => number;
+  edgeDashArrayFn?: (edge: VisualEdge) => string | undefined;
+  layoutMode?: GraphLayoutMode;
 };
 
 export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({ 
@@ -18,7 +24,12 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
   errorMessage,
   graphType,
   nodeColorFn,
-  edgeColorFn
+  edgeColorFn,
+  nodeStrokeColorFn,
+  nodeStrokeWidthFn,
+  edgeWidthFn,
+  edgeDashArrayFn,
+  layoutMode = 'force'
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -34,8 +45,8 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
     if (!svgRef.current || graphData.nodes.length === 0) return;
 
     // Deep copy nodes and edges for D3 simulation to mutate without affecting React state
-    const nodes = graphData.nodes.map(n => ({ ...n }));
-    const links = graphData.edges.map(e => ({ ...e }));
+    const nodes: PositionedVisualNode[] = graphData.nodes.map(n => ({ ...n }));
+    const links: PositionedVisualEdge[] = graphData.edges.map(e => ({ ...e }));
 
     // --- D3 Setup ---
     const width = svgRef.current.clientWidth || 800;
@@ -61,13 +72,19 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
         .style("stroke", "none");
     }
 
-    // --- Force Simulation ---
-    const simulation = d3.forceSimulation(nodes as d3.SimulationNodeDatum[])
-      .force("link", d3.forceLink(links).id((d: any) => d.id).distance(120))
-      .force("charge", d3.forceManyBody().strength(-400))
-      .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("x", d3.forceX(width / 2).strength(0.05)) // Pull isolated nodes to center horizontally
-      .force("y", d3.forceY(height / 2).strength(0.05)); // Pull isolated nodes to center vertically
+    const simulation = d3.forceSimulation(nodes as d3.SimulationNodeDatum[]);
+    if (layoutMode === 'force') {
+      simulation
+        .force("link", d3.forceLink(links).id((d: any) => d.id).distance(120))
+        .force("charge", d3.forceManyBody().strength(-400))
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force("x", d3.forceX(width / 2).strength(0.05))
+        .force("y", d3.forceY(height / 2).strength(0.05));
+    } else {
+      applyStaticGraphLayout(nodes, width, height, layoutMode);
+      resolveStaticGraphLinks(nodes, links);
+      simulation.stop();
+    }
 
     // --- Draw Links ---
     const linkGroup = svg.append("g")
@@ -79,7 +96,8 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
     const link = linkGroup.append("line")
       .attr("class", "graph-link")
       .attr("stroke", (d: any) => edgeColorFn ? edgeColorFn(d) : (d.color || '#999'))
-      .attr("stroke-width", (d: any) => d.isStartEdge ? 4 : 2)
+      .attr("stroke-width", (d: any) => edgeWidthFn ? edgeWidthFn(d) : (d.isStartEdge ? 4 : 2))
+      .attr("stroke-dasharray", (d: any) => edgeDashArrayFn ? (edgeDashArrayFn(d) ?? null) : null)
       .attr("marker-end", graphType === 'directed' ? "url(#arrowhead)" : "");
 
     const linkLabel = linkGroup.append("text")
@@ -105,8 +123,8 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
       .attr("r", 15)
       .attr("class", "graph-node")
       .style("fill", (d: any) => nodeColorFn ? nodeColorFn(d) : (d.color || '#fff'))
-      .attr("stroke", (d: any) => d.isStartNode ? '#333' : '#666')
-      .attr("stroke-width", (d: any) => d.isStartNode ? 4 : 2);
+      .attr("stroke", (d: any) => nodeStrokeColorFn ? nodeStrokeColorFn(d) : (d.isStartNode ? '#333' : '#666'))
+      .attr("stroke-width", (d: any) => nodeStrokeWidthFn ? nodeStrokeWidthFn(d) : (d.isStartNode ? 4 : 2));
 
     nodeGroup.append("text")
       .text((d: any) => d.label)
@@ -117,7 +135,7 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
 
     // --- Tick Function ---
     const radius = 15;
-    simulation.on("tick", () => {
+    const renderGraph = () => {
       // Bound nodes to SVG dimensions
       nodes.forEach((d: any) => {
         d.x = Math.max(radius, Math.min(width - radius, d.x));
@@ -136,11 +154,17 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
 
       nodeGroup
         .attr("transform", (d: any) => `translate(${d.x},${d.y})`);
-    });
+    };
+
+    if (layoutMode === 'force') {
+      simulation.on("tick", renderGraph);
+    } else {
+      renderGraph();
+    }
 
     // --- Drag Functions ---
     function dragstarted(event: any, d: any) {
-      if (!event.active) simulation.alphaTarget(0.3).restart();
+      if (layoutMode === 'force' && !event.active) simulation.alphaTarget(0.3).restart();
       d.fx = d.x;
       d.fy = d.y;
     }
@@ -148,18 +172,23 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
     function dragged(event: any, d: any) {
       d.fx = event.x;
       d.fy = event.y;
+      d.x = event.x;
+      d.y = event.y;
+      if (layoutMode !== 'force') renderGraph();
     }
 
     function dragended(event: any, d: any) {
-      if (!event.active) simulation.alphaTarget(0);
-      d.fx = null;
-      d.fy = null;
+      if (layoutMode === 'force') {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+      }
     }
 
     return () => {
       simulation.stop();
     };
-  }, [graphData, isDataLoaded, errorMessage, graphType, nodeColorFn, edgeColorFn]);
+  }, [graphData, isDataLoaded, errorMessage, graphType, nodeColorFn, edgeColorFn, nodeStrokeColorFn, nodeStrokeWidthFn, edgeWidthFn, edgeDashArrayFn, layoutMode]);
 
   return (
     <div className="graph-visualizer-container">

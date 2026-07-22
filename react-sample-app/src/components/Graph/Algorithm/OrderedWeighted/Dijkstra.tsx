@@ -8,14 +8,15 @@ import { GraphVisualizer } from '../../GraphVisualizer';
 
 type OrderedWeightedAlgorithmProps = {
     adjacentList: WeightedEdge[][];
+    graphType: string;
 };
 
-export function Dijkstra({ adjacentList }: OrderedWeightedAlgorithmProps) {
+export function Dijkstra({ adjacentList, graphType }: OrderedWeightedAlgorithmProps) {
     const { postGraphData, loading, error, data } = useWeightedGraphApi();
 
     const resultVisualData = useMemo(() => {
-        return buildDijkstraVisualGraphData(adjacentList, data);
-    }, [data, adjacentList]);
+        return buildDijkstraVisualGraphData(adjacentList, data, graphType === 'directed' ? 'directed' : 'undirected');
+    }, [data, adjacentList, graphType]);
 
     const HandleSubmit = async () => {
         const payload = {
@@ -61,7 +62,7 @@ export function Dijkstra({ adjacentList }: OrderedWeightedAlgorithmProps) {
                                 graphData={resultVisualData} 
                                 isDataLoaded={true}
                                 errorMessage=""
-                                graphType="directed"
+                                graphType={graphType}
                                 edgeColorFn={(edge) => {
                                     if (edge.isShortestPath) return '#E91E63'; // Pink for shortest path
                                     return '#999'; // Default edge color

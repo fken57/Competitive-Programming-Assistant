@@ -1,12 +1,12 @@
 import { useState , useCallback} from 'react';
-import { postUnweightedGraph , NoCostGraphNeighborListRequest , GraphEndpoint } from '../../util/NoCostGraphSendApis';
+import { postUnweightedGraph , UnweightedGraphRequest , GraphEndpoint } from '../../util/NoCostGraphSendApis';
 
 export const useUnweightedGraphApi = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<Error | null>(null);
     const [data, setData] = useState<any>(null);
 
-    const postGraphData = useCallback(async (endpoint: GraphEndpoint | string, requestData: NoCostGraphNeighborListRequest) => {
+    const postGraphData = useCallback(async (endpoint: GraphEndpoint | string, requestData: UnweightedGraphRequest) => {
         setLoading(true);
         setError(null);
         try {

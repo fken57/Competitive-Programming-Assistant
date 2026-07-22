@@ -3,7 +3,7 @@ import '../UnorderedUnweighted/IsBinaryTree.css'; // Reuse CSS layout
 import { MyButton } from '../../../common/button/Button';
 import { useUnweightedGraphApi } from '../../../../hooks/Graph/useUnweightedGraphApi';
 import { GRAPH_ENDPOINTS } from '../../../../util/NoCostGraphSendApis';
-import { buildSCCGraphVisualData } from '../../../../util/SCCGraphJsonTransform';
+import { buildSCCVisualGraphs } from '../../../../util/SCCGraphJsonTransform';
 import { GraphVisualizer } from '../../GraphVisualizer';
 
 type UnweightedOrderedAlgorithmProps = {
@@ -13,9 +13,10 @@ type UnweightedOrderedAlgorithmProps = {
 export function SCC({adjacentList}: UnweightedOrderedAlgorithmProps) {
     const { postGraphData, loading, error, data } = useUnweightedGraphApi();
 
-    const resultVisualData = useMemo(() => {
-        return buildSCCGraphVisualData(adjacentList, data);
+    const resultVisualGraphs = useMemo(() => {
+        return buildSCCVisualGraphs(adjacentList, data);
     }, [data, adjacentList]);
+    const componentColors = ['#BFDBFE', '#BBF7D0', '#FDE68A', '#E9D5FF', '#FED7AA', '#FBCFE8'];
 
     const HandleSubmit = async () => {
         const payload = {
@@ -63,16 +64,30 @@ export function SCC({adjacentList}: UnweightedOrderedAlgorithmProps) {
                     </div>
                 )}
                 
-                {data && resultVisualData ? (
+                {data && resultVisualGraphs ? (
                     <div className="bfs-visualizer-wrapper">
                         <div className="bfs-visualizer-box">
                             <GraphVisualizer 
-                                graphData={resultVisualData} 
+                                graphData={resultVisualGraphs.condensationGraph}
                                 isDataLoaded={true}
                                 errorMessage=""
                                 graphType="directed"
+                                layoutMode="linear"
+                                nodeColorFn={(node) => componentColors[(node.attributes?.componentIndex ?? 0) % componentColors.length]}
                             />
                         </div>
+                        <details className="bfs-debug-info">
+                            <summary>Show original graph colored by SCC</summary>
+                            <div className="bfs-visualizer-box">
+                                <GraphVisualizer
+                                    graphData={resultVisualGraphs.originalGraph}
+                                    isDataLoaded={true}
+                                    errorMessage=""
+                                    graphType="directed"
+                                    nodeColorFn={(node) => componentColors[(node.attributes?.componentIndex ?? 0) % componentColors.length]}
+                                />
+                            </div>
+                        </details>
                         <div className="bfs-debug-info">
                             <details>
                                 <summary>バックエンドからのレスポンス(デバッグ用)</summary>

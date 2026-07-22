@@ -3,6 +3,7 @@ package weightedgraph
 import (
 	"backend/internal/domain/weightedgraph"
 	"backend/internal/domain/weightedgraph/graphdatabase"
+	"errors"
 )
 
 type CostGraphUseCase struct {
@@ -34,6 +35,20 @@ func (g *CostGraphUseCase) MakeNewCostNeighborListGraph(vertexCount int, neighbo
 }
 
 func (g *CostGraphUseCase) ExecuteDijkstra(graph graphdatabase.WeightedGraph, startVertex int) ([]int, []int, error) {
+	if startVertex < 0 || startVertex >= graph.VertexSize() {
+		return nil, nil, errors.New("start vertex is out of range")
+	}
 	dist, prev := weightedgraph.Dijkstra(graph, startVertex)
 	return dist, prev, nil
+}
+
+func (g *CostGraphUseCase) ExecutePrim(graph graphdatabase.WeightedGraph) (weightedgraph.PrimResult, error) {
+	if !weightedgraph.IsUndirectedWeightedGraph(graph) {
+		return weightedgraph.PrimResult{}, errors.New("the graph is not an undirected graph")
+	}
+	return weightedgraph.Prim(graph), nil
+}
+
+func (g *CostGraphUseCase) GetTreeDiameter(graph graphdatabase.WeightedGraph) (weightedgraph.TreeDiameter, error) {
+	return weightedgraph.WeightedTreeDiameter(graph)
 }

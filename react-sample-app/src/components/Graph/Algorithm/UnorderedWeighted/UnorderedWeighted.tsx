@@ -9,7 +9,7 @@ type OrderedWeightedAlgorithmProps = {
 export function OrderedWeightedAlgorithm({ adjacentList }: OrderedWeightedAlgorithmProps) {
     return (
         <div className="unweighted-ordered-algorithm-container">
-            <Dijkstra adjacentList={adjacentList} />
+            <Dijkstra adjacentList={adjacentList} graphType="undirected" />
         </div>
     );
 }

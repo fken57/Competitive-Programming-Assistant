@@ -6,6 +6,30 @@ import (
 	"errors"
 )
 
+type TopologicalSortAnalysis struct {
+	Sortable bool
+	Vertices []int
+	Cycle    []int
+}
+
+// AnalyzeTopologicalSort returns either a topological order or a directed
+// cycle that explains why no order exists.
+func AnalyzeTopologicalSort(graph graphdatabase.UnweightedGraph) TopologicalSortAnalysis {
+	vertices, err := TopologicalSort(graph)
+	if err != nil {
+		return TopologicalSortAnalysis{
+			Sortable: false,
+			Vertices: []int{},
+			Cycle:    FindDirectedCycle(graph),
+		}
+	}
+	return TopologicalSortAnalysis{
+		Sortable: true,
+		Vertices: vertices,
+		Cycle:    []int{},
+	}
+}
+
 func TopologicalSort(graph graphdatabase.UnweightedGraph) ([]int, error) {
 	degrees, err := GetVerticalDegree(graph)
 	if err != nil {
@@ -19,7 +43,7 @@ func TopologicalSort(graph graphdatabase.UnweightedGraph) ([]int, error) {
 		}
 	}
 
-	result := make([]int, 0,0)
+	result := make([]int, 0, 0)
 	for queue.Len() > 0 {
 		current := queue.Remove(queue.Front()).(int)
 		result = append(result, current)
@@ -39,13 +63,13 @@ func TopologicalSort(graph graphdatabase.UnweightedGraph) ([]int, error) {
 	return result, nil
 }
 
-func GetVerticalDegree(graph graphdatabase.	UnweightedGraph) ([]int, error) {
+func GetVerticalDegree(graph graphdatabase.UnweightedGraph) ([]int, error) {
 	degrees := make([]int, graph.VertexSize())
-	for i:= 0; i< graph.VertexSize(); i++ {
+	for i := 0; i < graph.VertexSize(); i++ {
 		degrees[i] = 0
 	}
 	for i := 0; i < graph.VertexSize(); i++ {
-		for _ , to := range graph.NeighborEdges(i) {
+		for _, to := range graph.NeighborEdges(i) {
 			degrees[to]++
 		}
 	}

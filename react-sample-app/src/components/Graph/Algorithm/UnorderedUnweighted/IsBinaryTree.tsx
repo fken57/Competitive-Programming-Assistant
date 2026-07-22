@@ -49,14 +49,14 @@ export function IsBinaryTree({ adjacentList }: UnweightedUnorderedAlgorithmProps
                     color="blue"
                     onClick={HandleSubmit}
                 >
-                    二分木の判定
+                    二部グラフ判定
                 </MyButton>
             </div>
 
             <div className="result-display-area">
                 <h3 className="bfs-result-title">実行結果</h3>
                 <p className="bfs-result-text">
-                    {isBinaryTree ? 'このグラフは二分木です。' : 'このグラフは二分木ではありません。'}
+                    {isBinaryTree ? 'このグラフは二部グラフです。' : 'このグラフは二部グラフではありません。'}
                 </p>
                 {error && (
                     <div className="bfs-error-message">
@@ -65,7 +65,7 @@ export function IsBinaryTree({ adjacentList }: UnweightedUnorderedAlgorithmProps
                 )}
     
                 
-                {isBinaryTree && resultVisualData ? (
+                {data && resultVisualData ? (
                     <div className="bfs-visualizer-wrapper">
                         <div className="bfs-visualizer-box">
                             <GraphVisualizer 
@@ -76,8 +76,13 @@ export function IsBinaryTree({ adjacentList }: UnweightedUnorderedAlgorithmProps
                                 nodeColorFn={(node) => {
                                     if (node.attributes?.groupOne) return '#FF0000'; // Red for Group 1
                                     if (node.attributes?.groupTwo) return '#0000FF'; // Blue for Group 2
+                                    if (node.attributes?.inOddCycle) return '#FDE68A';
                                     return node.color || '#42A5F5'; // Default blue
                                 }}
+                                nodeStrokeColorFn={(node) => node.attributes?.inOddCycle ? '#DC2626' : '#666'}
+                                nodeStrokeWidthFn={(node) => node.attributes?.inOddCycle ? 5 : 2}
+                                edgeColorFn={(edge) => edge.attributes?.inOddCycle ? '#DC2626' : '#999'}
+                                edgeWidthFn={(edge) => edge.attributes?.inOddCycle ? 5 : 2}
                             />
                         </div>
                         <div className="bfs-debug-info">

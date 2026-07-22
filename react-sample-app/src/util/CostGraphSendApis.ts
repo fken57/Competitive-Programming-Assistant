@@ -12,7 +12,9 @@ export interface CostGraphNeighborListRequest {
 }
 
 export const WEIGHTED_GRAPH_ENDPOINTS = {
-    DIJKSTRA: '/graphs/weighted/ordered/dijkstra'
+    DIJKSTRA: '/graphs/weighted/ordered/dijkstra',
+    PRIM: '/graphs/weighted/unordered/prim',
+    TREE_DIAMETER: '/graphs/weighted/unordered/treediameter'
 } as const;
 
 export type WeightedGraphEndpoint = typeof WEIGHTED_GRAPH_ENDPOINTS[keyof typeof WEIGHTED_GRAPH_ENDPOINTS];
