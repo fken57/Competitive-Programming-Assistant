@@ -1,6 +1,9 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { GenerationResult } from './GenerationResult';
+import {
+  GenerationResult,
+  getOutputDisplayDecision,
+} from './GenerationResult';
 
 const result = {
   recipe: {
@@ -57,4 +60,38 @@ test('offers authentication-only actions as disabled before auth exists', () => 
 
   expect(screen.getByRole('button', { name: 'Mark as killed' })).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Save as preset' })).toBeDisabled();
+});
+
+test.each([
+  ['a line wider than the layout limit', `2\n${'1'.repeat(121)}\n`],
+  ['too many lines', `${Array.from({ length: 51 }, () => '1').join('\n')}\n`],
+  ['more than four KiB', `${Array.from({ length: 50 }, () => '1'.repeat(100)).join('\n')}\n`],
+])('offers download only for %s', (_label, inputText) => {
+  const largeResult = { ...result, inputText };
+
+  render(
+    <GenerationResult
+      result={largeResult}
+      loading={false}
+      authenticated={false}
+      onRegenerate={jest.fn()}
+      onSaveRecipe={jest.fn()}
+      onMarkKilled={jest.fn()}
+      onSavePreset={jest.fn()}
+    />,
+  );
+
+  expect(screen.getByText('出力が大きいため、画面表示を省略しました。')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Download .txt' })).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Copy' })).not.toBeInTheDocument();
+  expect(document.querySelector('.random-gen-output')).not.toBeInTheDocument();
+});
+
+test('keeps compact output inline at the configured limits', () => {
+  const inputText = `${Array.from({ length: 50 }, () => '1'.repeat(80)).join('\n')}\n`;
+  expect(getOutputDisplayDecision(inputText)).toMatchObject({
+    inline: true,
+    lines: 50,
+    maxLineLength: 80,
+  });
 });
