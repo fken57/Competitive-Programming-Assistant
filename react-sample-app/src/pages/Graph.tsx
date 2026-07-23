@@ -2,18 +2,46 @@ import React, { useState } from "react";
 import { GraphInputFormOutline } from "../components/Graph/GraphInputFormOutline";
 import { AlgorithmFormOutline } from "../components/Graph/AlgorithmFormOutLine";
 import { GraphVisualizer } from "../components/Graph/GraphVisualizer";
-import { VisualGraphData } from "../util/graphUtils";
+import { VisualGraphData, WeightedAdjacencyListItem } from "../util/graphUtils";
 import './Graph.css';
 
+type GraphType = 'undirected' | 'directed';
+type GraphAdjacencyList = number[][] | WeightedAdjacencyListItem[][];
+
 const GraphPage: React.FC = () => {
-  const [graphType, setGraphType] = useState('undirected');
+  const [graphType, setGraphType] = useState<GraphType>('undirected');
   const [hasWeights, setHasWeights] = useState(false);
 
-  const [adjacentList, setAdjacentList] = useState<any[]>([]);
+  const [adjacentList, setAdjacentList] = useState<GraphAdjacencyList>([]);
   const [visualGraphData, setVisualGraphData] = useState<VisualGraphData | null>(null);
   
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [graphRevision, setGraphRevision] = useState(0);
+
+  const invalidateGraph = () => {
+    setAdjacentList([]);
+    setVisualGraphData(null);
+    setIsDataLoaded(false);
+    setErrorMessage("");
+    setGraphRevision((revision) => revision + 1);
+  };
+
+  const handleGraphTypeChange = (nextGraphType: string) => {
+    if (nextGraphType === graphType) return;
+    setGraphType(nextGraphType as GraphType);
+    invalidateGraph();
+  };
+
+  const handleWeightChange = (nextHasWeights: boolean) => {
+    if (nextHasWeights === hasWeights) return;
+    setHasWeights(nextHasWeights);
+    invalidateGraph();
+  };
+
+  const handleGraphSubmitted = () => {
+    setGraphRevision((revision) => revision + 1);
+  };
 
   return (
     <div className="graph-page-wrapper">
@@ -24,13 +52,14 @@ const GraphPage: React.FC = () => {
           
           <GraphInputFormOutline 
             graphType={graphType} 
-            setGraphType={setGraphType}
+            setGraphType={handleGraphTypeChange}
             hasWeights={hasWeights} 
-            setHasWeights={setHasWeights}
+            setHasWeights={handleWeightChange}
             setAdjacentList={setAdjacentList}
             setVisualGraphData={setVisualGraphData}
             setIsDataLoaded={setIsDataLoaded}
             setErrorMessage={setErrorMessage} 
+            onGraphSubmitted={handleGraphSubmitted}
           />
         </div>
 
@@ -52,6 +81,7 @@ const GraphPage: React.FC = () => {
       {isDataLoaded && (
         <div className="graph-page-bottom">
           <AlgorithmFormOutline 
+            key={graphRevision}
             hasWeights={hasWeights}
             graphType={graphType}
             adjacentList={adjacentList}

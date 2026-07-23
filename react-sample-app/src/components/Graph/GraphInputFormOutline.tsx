@@ -1,11 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { MyButton } from '../common/button/Button';
-import { useNavigate } from 'react-router-dom';
 import { StateChooseToggle } from './StateChooseButton';
 import { parseGraphAllData } from '../../util/graphUtils';
-import { VisualGraphData } from '../../util/graphUtils';
-import { useUnweightedGraphApi } from '../../hooks/Graph/useUnweightedGraphApi';
-import { GRAPH_ENDPOINTS } from '../../util/NoCostGraphSendApis';
+import { VisualGraphData, WeightedAdjacencyListItem } from '../../util/graphUtils';
 import './GraphInputFormOutline.css';
 
 type GraphInputFormOutlineProps = {
@@ -13,24 +10,24 @@ type GraphInputFormOutlineProps = {
     setGraphType: (value: string) => void;
     hasWeights: boolean;
     setHasWeights: (value: boolean) => void;
-    setAdjacentList: (value: any[]) => void;
-    setVisualGraphData: (value: VisualGraphData) => void;
+    setAdjacentList: (value: number[][] | WeightedAdjacencyListItem[][]) => void;
+    setVisualGraphData: (value: VisualGraphData | null) => void;
     setIsDataLoaded: (value: boolean) => void;
     setErrorMessage: (msg: string) => void;
+    onGraphSubmitted: () => void;
 };
 
 export function GraphInputFormOutline({ 
-    graphType, setGraphType, hasWeights, setHasWeights, setAdjacentList, setVisualGraphData, setIsDataLoaded, setErrorMessage 
+    graphType, setGraphType, hasWeights, setHasWeights, setAdjacentList, setVisualGraphData, setIsDataLoaded, setErrorMessage, onGraphSubmitted
 }: GraphInputFormOutlineProps) {
-    const navigate = useNavigate();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    
-    const { postGraphData, loading, error, data } = useUnweightedGraphApi();
 
     const handleSubmit = async () => {
         const textarea = textareaRef.current;
         if (!textarea || !textarea.value.trim()) {
             setErrorMessage("入力が空です。");
+            setAdjacentList([]);
+            setVisualGraphData(null);
             setIsDataLoaded(false);
             return;
         }
@@ -42,8 +39,11 @@ export function GraphInputFormOutline({
             setAdjacentList(adjList);
             setVisualGraphData(visualData);
             setIsDataLoaded(true);
+            onGraphSubmitted();
         } catch (e: any) {
             setErrorMessage(e.message || "パースエラーが発生しました。");
+            setAdjacentList([]);
+            setVisualGraphData(null);
             setIsDataLoaded(false);
         }
     };
@@ -67,7 +67,7 @@ export function GraphInputFormOutline({
                     color="green"
                     onClick={handleSubmit}
                 >
-                    {loading ? "送信中..." : "送信"}
+                    送信
                 </MyButton>
             </div>
             
