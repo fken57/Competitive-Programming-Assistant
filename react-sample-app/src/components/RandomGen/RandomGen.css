@@ -8,6 +8,66 @@
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
+.random-gen-save-form,
+.random-gen-library {
+  padding: 20px;
+  border: 1px solid #dbe4ef;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.random-gen-save-form,
+.random-gen-save-form > label {
+  display: grid;
+  gap: 8px;
+}
+
+.random-gen-save-form {
+  gap: 14px;
+}
+
+.random-gen-save-form input,
+.random-gen-save-form select,
+.random-gen-save-form textarea {
+  padding: 9px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font: inherit;
+}
+
+.random-gen-tag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px;
+}
+
+.random-gen-library {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.random-gen-library ul {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.random-gen-library li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.random-gen-library li div {
+  display: grid;
+  gap: 3px;
+}
+
 .random-gen-structure-tabs,
 .random-gen-actions,
 .random-gen-options,

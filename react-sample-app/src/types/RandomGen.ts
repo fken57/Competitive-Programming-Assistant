@@ -23,9 +23,31 @@ export type GeneratedCase = {
 
 export type GenerationHistory = {
   id: string;
-  userId: null;
+  userId?: string | null;
   createdAt: string;
   expiresAt: string;
   recipe: GenerationRecipe;
   killedFlag: boolean;
+};
+
+export type FailureType = 'WA' | 'RE' | 'TLE' | 'MLE' | 'CE' | 'UNKNOWN';
+
+export type KilledCase = {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  recipe: GenerationRecipe;
+  failureType: FailureType;
+  reasonTags: string[];
+  notes: string;
+  isFavorite: boolean;
+};
+
+export type GeneratorPreset = {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  recipe: GenerationRecipe;
 };

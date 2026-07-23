@@ -27,8 +27,11 @@ test('copies input and regenerates from the displayed recipe', async () => {
     <GenerationResult
       result={result}
       loading={false}
+      authenticated={false}
       onRegenerate={regenerate}
       onSaveRecipe={jest.fn()}
+      onMarkKilled={jest.fn()}
+      onSavePreset={jest.fn()}
     />,
   );
 
@@ -44,8 +47,11 @@ test('offers authentication-only actions as disabled before auth exists', () => 
     <GenerationResult
       result={result}
       loading={false}
+      authenticated={false}
       onRegenerate={jest.fn()}
       onSaveRecipe={jest.fn()}
+      onMarkKilled={jest.fn()}
+      onSavePreset={jest.fn()}
     />,
   );
 

@@ -6,6 +6,15 @@ import { RANDOM_GEN_HISTORY_KEY } from '../util/randomGenHistoryStorage';
 
 jest.mock('../util/RandomGenApi', () => ({
   postGenerateRandomCase: jest.fn(),
+  listGeneratorPresets: jest.fn(),
+  listKilledCases: jest.fn(),
+  listServerHistory: jest.fn(),
+  saveGeneratorPreset: jest.fn(),
+  saveKilledCase: jest.fn(),
+  saveServerHistory: jest.fn(),
+}));
+jest.mock('../hooks/Auth/useAuth', () => ({
+  useAuth: () => ({ user: null }),
 }));
 
 beforeEach(() => {

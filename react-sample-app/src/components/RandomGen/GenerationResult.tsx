@@ -5,8 +5,11 @@ import './RandomGen.css';
 type Props = {
   result: GeneratedCase;
   loading: boolean;
+  authenticated: boolean;
   onRegenerate: () => void;
   onSaveRecipe: () => void;
+  onMarkKilled: () => void;
+  onSavePreset: () => void;
 };
 
 export function downloadGeneratedInput(inputText: string, seed: string) {
@@ -18,7 +21,15 @@ export function downloadGeneratedInput(inputText: string, seed: string) {
   URL.revokeObjectURL(url);
 }
 
-export function GenerationResult({ result, loading, onRegenerate, onSaveRecipe }: Props) {
+export function GenerationResult({
+  result,
+  loading,
+  authenticated,
+  onRegenerate,
+  onSaveRecipe,
+  onMarkKilled,
+  onSavePreset,
+}: Props) {
   const [message, setMessage] = useState('');
   const { recipe, inputText } = result;
 
@@ -43,8 +54,22 @@ export function GenerationResult({ result, loading, onRegenerate, onSaveRecipe }
           }}>
             Save recipe
           </button>
-          <button type="button" disabled title="認証実装後に利用できます">Mark as killed</button>
-          <button type="button" disabled title="認証実装後に利用できます">Save as preset</button>
+          <button
+            type="button"
+            disabled={!authenticated}
+            title={authenticated ? '' : 'ログインすると利用できます'}
+            onClick={onMarkKilled}
+          >
+            Mark as killed
+          </button>
+          <button
+            type="button"
+            disabled={!authenticated}
+            title={authenticated ? '' : 'ログインすると利用できます'}
+            onClick={onSavePreset}
+          >
+            Save as preset
+          </button>
         </div>
       </div>
       {message && <p className="random-gen-message" role="status">{message}</p>}
