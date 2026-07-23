@@ -4,6 +4,8 @@ import { AlgorithmFormOutline } from "../components/Graph/AlgorithmFormOutLine";
 import { GraphVisualizer } from "../components/Graph/GraphVisualizer";
 import { VisualGraphData, WeightedAdjacencyListItem } from "../util/graphUtils";
 import './Graph.css';
+import { AnalysisViewMode, AnalysisViewToggle } from "../components/common/AnalysisViewToggle";
+import { GraphStaticAnalysisList } from "../components/Graph/Algorithm/Static/GraphStaticAnalysisList";
 
 type GraphType = 'undirected' | 'directed';
 type GraphAdjacencyList = number[][] | WeightedAdjacencyListItem[][];
@@ -18,6 +20,7 @@ const GraphPage: React.FC = () => {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [graphRevision, setGraphRevision] = useState(0);
+  const [analysisViewMode, setAnalysisViewMode] = useState<AnalysisViewMode>('container');
 
   const invalidateGraph = () => {
     setAdjacentList([]);
@@ -30,12 +33,14 @@ const GraphPage: React.FC = () => {
   const handleGraphTypeChange = (nextGraphType: string) => {
     if (nextGraphType === graphType) return;
     setGraphType(nextGraphType as GraphType);
+    if (nextGraphType === 'directed' && hasWeights) setAnalysisViewMode('container');
     invalidateGraph();
   };
 
   const handleWeightChange = (nextHasWeights: boolean) => {
     if (nextHasWeights === hasWeights) return;
     setHasWeights(nextHasWeights);
+    if (nextHasWeights && graphType === 'directed') setAnalysisViewMode('container');
     invalidateGraph();
   };
 
@@ -80,12 +85,26 @@ const GraphPage: React.FC = () => {
 
       {isDataLoaded && (
         <div className="graph-page-bottom">
-          <AlgorithmFormOutline 
-            key={graphRevision}
-            hasWeights={hasWeights}
-            graphType={graphType}
-            adjacentList={adjacentList}
+          <AnalysisViewToggle
+            mode={analysisViewMode}
+            onChange={setAnalysisViewMode}
+            listDisabled={graphType === 'directed' && hasWeights}
           />
+          {analysisViewMode === 'container' ? (
+            <AlgorithmFormOutline
+              key={graphRevision}
+              hasWeights={hasWeights}
+              graphType={graphType}
+              adjacentList={adjacentList}
+            />
+          ) : (
+            <GraphStaticAnalysisList
+              key={graphRevision}
+              graphType={graphType}
+              hasWeights={hasWeights}
+              adjacentList={adjacentList}
+            />
+          )}
         </div>
       )}
     </div>

@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import './IsBinaryTree.css';
 import { MyButton } from '../../../common/button/Button';
 import { useUnweightedGraphApi } from '../../../../hooks/Graph/useUnweightedGraphApi';
 import { GRAPH_ENDPOINTS } from '../../../../util/NoCostGraphSendApis';
 import { GraphVisualizer } from '../../GraphVisualizer';
 import { buildDFSVisualGraphData } from '../../../../util/DFSGraphJsonTransform';
+import { parseStartVertex } from '../../../../util/startVertexUtils';
 
 type DFSProps = {
     adjacentList: number[][];
@@ -13,16 +14,26 @@ type DFSProps = {
 
 export function DFS({ adjacentList, graphType = 'undirected' }: DFSProps) {
     const { postGraphData, loading, error, data } = useUnweightedGraphApi();
+    const [startVertex, setStartVertex] = useState('1');
+    const [validationError, setValidationError] = useState<string | null>(null);
     const resultVisualData = useMemo(
         () => buildDFSVisualGraphData(adjacentList, data, graphType),
         [adjacentList, data, graphType]
     );
 
     const handleSubmit = async () => {
+        let parsedStartVertex: number;
+        try {
+            parsedStartVertex = parseStartVertex(startVertex, adjacentList.length);
+            setValidationError(null);
+        } catch (caughtError) {
+            setValidationError(caughtError instanceof Error ? caughtError.message : '開始頂点が不正です。');
+            return;
+        }
         await postGraphData(GRAPH_ENDPOINTS.DFS, {
             vertex_count: adjacentList.length,
             neighbors: adjacentList,
-            start_vertex: 0
+            start_vertex: parsedStartVertex
         });
     };
 
@@ -30,6 +41,17 @@ export function DFS({ adjacentList, graphType = 'undirected' }: DFSProps) {
 
     return (
         <div className="is-binary-tree-algorithm-container">
+            <div className="form-outline-input-area">
+                <input
+                    type="number"
+                    min={1}
+                    max={adjacentList.length}
+                    aria-label="DFSの開始頂点"
+                    value={startVertex}
+                    onChange={(event) => setStartVertex(event.target.value)}
+                />
+            </div>
+            {validationError && <div className="bfs-error-message">エラー: {validationError}</div>}
             <div className="button-container">
                 <MyButton color="blue" onClick={handleSubmit}>{loading ? '実行中...' : `DFSを実行（${graphType === 'directed' ? '有向' : '無向'}）`}</MyButton>
             </div>

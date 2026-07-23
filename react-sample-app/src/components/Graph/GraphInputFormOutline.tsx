@@ -1,9 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useState } from 'react';
 import { MyButton } from '../common/button/Button';
 import { StateChooseToggle } from './StateChooseButton';
 import { parseGraphAllData } from '../../util/graphUtils';
 import { VisualGraphData, WeightedAdjacencyListItem } from '../../util/graphUtils';
 import './GraphInputFormOutline.css';
+import { InputSourceMode, InputSourceToggle } from '../common/InputSourceToggle';
+import { TextFileInput } from '../common/TextFileInput';
 
 type GraphInputFormOutlineProps = {
     graphType: string;
@@ -20,11 +22,26 @@ type GraphInputFormOutlineProps = {
 export function GraphInputFormOutline({ 
     graphType, setGraphType, hasWeights, setHasWeights, setAdjacentList, setVisualGraphData, setIsDataLoaded, setErrorMessage, onGraphSubmitted
 }: GraphInputFormOutlineProps) {
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const [input, setInput] = useState('');
+    const [sourceMode, setSourceMode] = useState<InputSourceMode>('manual');
+
+    const clearLoadedGraph = () => {
+        setAdjacentList([]);
+        setVisualGraphData(null);
+        setIsDataLoaded(false);
+        setErrorMessage('');
+        onGraphSubmitted();
+    };
+
+    const handleSourceModeChange = (mode: InputSourceMode) => {
+        if (mode === sourceMode) return;
+        setSourceMode(mode);
+        setInput('');
+        clearLoadedGraph();
+    };
 
     const handleSubmit = async () => {
-        const textarea = textareaRef.current;
-        if (!textarea || !textarea.value.trim()) {
+        if (!input.trim()) {
             setErrorMessage("入力が空です。");
             setAdjacentList([]);
             setVisualGraphData(null);
@@ -35,7 +52,7 @@ export function GraphInputFormOutline({
         try {
             setErrorMessage(""); // Clear previous errors
             
-            const { adjList, visualData } = parseGraphAllData(textarea.value, graphType === 'directed', hasWeights);
+            const { adjList, visualData } = parseGraphAllData(input, graphType === 'directed', hasWeights);
             setAdjacentList(adjList);
             setVisualGraphData(visualData);
             setIsDataLoaded(true);
@@ -53,13 +70,20 @@ export function GraphInputFormOutline({
             <div className="form-outline-text-area">
                 <p className="form-outline-text">こちらにグラフの入力(1-indexed)を入力してください。</p>
             </div>
+            <InputSourceToggle mode={sourceMode} onChange={handleSourceModeChange} />
             
             <div className="form-outline-input-area">
-                <textarea 
-                    className="form-outline-textarea" 
-                    placeholder="N M&#10;u1 v1&#10;..."
-                    ref={textareaRef}
-                />
+                {sourceMode === 'manual' ? (
+                    <textarea
+                        className="form-outline-textarea"
+                        aria-label="グラフの標準入力"
+                        placeholder={'N M\nu1 v1\n...'}
+                        value={input}
+                        onChange={(event) => setInput(event.target.value)}
+                    />
+                ) : (
+                    <TextFileInput onTextLoaded={setInput} onError={setErrorMessage} />
+                )}
             </div>
             
             <div className="form-outline-button-area">

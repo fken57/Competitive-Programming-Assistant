@@ -20,16 +20,26 @@ export function UnweightedUnorderedAlgorithm({ adjacentList }: UnweightedUnorder
     const canRunTreeAlgorithms = isUndirectedTree(adjacentList);
 
     return (
-        <div className="unweighted-unordered-algorithm-container">
-            <BFS adjacentList={adjacentList} />
-            <DFS adjacentList={adjacentList} />
-            <ConnectedComponents adjacentList={adjacentList} />
-            <UnionFind adjacentList={adjacentList} />
-            <LowLink adjacentList={adjacentList} />
-            <IsBinaryTree adjacentList={adjacentList} />
-            <IsTree adjacentList={adjacentList} />
-            {canRunTreeAlgorithms && <UnweightedTreeDistance adjacentList={adjacentList} />}
-            {canRunTreeAlgorithms && <LCA adjacentList={adjacentList} />}
+        <div className="graph-algorithm-groups">
+            <section>
+                <h2>静的Analyze</h2>
+                <div className="unweighted-unordered-algorithm-container">
+                    <ConnectedComponents adjacentList={adjacentList} />
+                    <UnionFind adjacentList={adjacentList} />
+                    <LowLink adjacentList={adjacentList} />
+                    <IsBinaryTree adjacentList={adjacentList} />
+                    <IsTree adjacentList={adjacentList} />
+                    {canRunTreeAlgorithms && <UnweightedTreeDistance adjacentList={adjacentList} />}
+                </div>
+            </section>
+            <section>
+                <h2>クエリ</h2>
+                <div className="unweighted-unordered-algorithm-container">
+                    <BFS adjacentList={adjacentList} />
+                    <DFS adjacentList={adjacentList} />
+                    {canRunTreeAlgorithms && <LCA adjacentList={adjacentList} />}
+                </div>
+            </section>
         </div>
     );
 }

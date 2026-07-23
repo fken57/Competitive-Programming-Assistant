@@ -58,3 +58,14 @@ test('submitting a new graph resets prior algorithm result state', () => {
   submitGraph('4 1\n1 4');
   expect(screen.getByTestId('algorithm-panel')).toHaveAttribute('data-result-state', 'clean');
 });
+
+test('changing the input source invalidates the parsed graph', () => {
+  renderGraphPage();
+  submitGraph('3 2\n1 2\n2 3');
+
+  fireEvent.click(screen.getByRole('radio', { name: '.txt入力' }));
+
+  expect(screen.queryByTestId('algorithm-panel')).not.toBeInTheDocument();
+  expect(screen.getByTestId('graph-visualizer')).toHaveAttribute('data-loaded', 'false');
+  expect(screen.getByLabelText('.txtファイル')).toBeInTheDocument();
+});

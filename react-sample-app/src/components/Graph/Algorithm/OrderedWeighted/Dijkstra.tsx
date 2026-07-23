@@ -5,6 +5,7 @@ import { useWeightedGraphApi } from '../../../../hooks/Graph/useWeightedGraphApi
 import { WEIGHTED_GRAPH_ENDPOINTS, WeightedEdge } from '../../../../util/CostGraphSendApis';
 import { buildDijkstraVisualGraphData } from '../../../../util/DijkstraGraphJsonTransform';
 import { GraphVisualizer } from '../../GraphVisualizer';
+import { parseStartVertex } from '../../../../util/startVertexUtils';
 
 type OrderedWeightedAlgorithmProps = {
     adjacentList: WeightedEdge[][];
@@ -14,6 +15,7 @@ type OrderedWeightedAlgorithmProps = {
 export function Dijkstra({ adjacentList, graphType }: OrderedWeightedAlgorithmProps) {
     const { postGraphData, loading, error, data } = useWeightedGraphApi();
     const [validationError, setValidationError] = useState<string | null>(null);
+    const [startVertex, setStartVertex] = useState('1');
 
     const resultVisualData = useMemo(() => {
         return buildDijkstraVisualGraphData(adjacentList, data, graphType === 'directed' ? 'directed' : 'undirected');
@@ -25,11 +27,18 @@ export function Dijkstra({ adjacentList, graphType }: OrderedWeightedAlgorithmPr
             return;
         }
 
-        setValidationError(null);
+        let parsedStartVertex: number;
+        try {
+            parsedStartVertex = parseStartVertex(startVertex, adjacentList.length);
+            setValidationError(null);
+        } catch (caughtError) {
+            setValidationError(caughtError instanceof Error ? caughtError.message : '開始頂点が不正です。');
+            return;
+        }
         const payload = {
             vertex_count: adjacentList.length,
             neighbors: adjacentList,
-            start_vertex: 0
+            start_vertex: parsedStartVertex
         };
 
         try {
@@ -41,6 +50,16 @@ export function Dijkstra({ adjacentList, graphType }: OrderedWeightedAlgorithmPr
 
     return (
         <div className="is-binary-tree-algorithm-container">
+            <div className="form-outline-input-area">
+                <input
+                    type="number"
+                    min={1}
+                    max={adjacentList.length}
+                    aria-label="Dijkstraの開始頂点"
+                    value={startVertex}
+                    onChange={(event) => setStartVertex(event.target.value)}
+                />
+            </div>
             <div className="button-container">
                 <MyButton color="blue" onClick={HandleSubmit}>
                     {loading ? "実行中..." : "ダイクストラ法を実行"}

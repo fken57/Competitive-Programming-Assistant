@@ -15,12 +15,22 @@ type UnweightedOrderedAlgorithmProps = {
 
 export function UnweightedOrderedAlgorithm({ adjacentList }: UnweightedOrderedAlgorithmProps) {
     return (
-        <div className="unweighted-ordered-algorithm-container">
-            <BFS adjacentList={adjacentList} graphType="directed" />
-            <DFS adjacentList={adjacentList} graphType="directed" />
-            <DirectedCycle adjacentList={adjacentList} />
-            <TopologicalSort adjacentList={adjacentList} />
-            <SCC adjacentList={adjacentList} />
+        <div className="graph-algorithm-groups">
+            <section>
+                <h2>静的Analyze</h2>
+                <div className="unweighted-ordered-algorithm-container">
+                    <DirectedCycle adjacentList={adjacentList} />
+                    <TopologicalSort adjacentList={adjacentList} />
+                    <SCC adjacentList={adjacentList} />
+                </div>
+            </section>
+            <section>
+                <h2>クエリ</h2>
+                <div className="unweighted-ordered-algorithm-container">
+                    <BFS adjacentList={adjacentList} graphType="directed" />
+                    <DFS adjacentList={adjacentList} graphType="directed" />
+                </div>
+            </section>
         </div>
     );
 }
