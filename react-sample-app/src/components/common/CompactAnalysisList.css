@@ -20,9 +20,9 @@
 
 .compact-analysis-row-main {
   display: grid;
-  grid-template-columns: 74px minmax(150px, 220px) 1fr;
+  grid-template-columns: 74px minmax(150px, 220px) minmax(0, 1fr);
   gap: 12px;
-  align-items: center;
+  align-items: start;
 }
 
 .compact-analysis-status {
@@ -32,17 +32,45 @@
   text-transform: uppercase;
 }
 
-.compact-analysis-row code {
-  overflow-x: auto;
+.compact-analysis-fields {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+}
+
+.compact-analysis-field {
+  display: grid;
+  grid-template-columns: minmax(110px, max-content) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.compact-analysis-field dt {
+  color: #475569;
+  font-weight: 700;
+}
+
+.compact-analysis-field dt::after {
+  content: ":";
+}
+
+.compact-analysis-field dd {
+  min-width: 0;
+  margin: 0;
   color: #334155;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+}
+
+.compact-analysis-reason {
+  margin: 0;
+  color: #475569;
 }
 
 .compact-analysis-row details {
   margin-top: 10px;
 }
 
-.compact-analysis-row pre {
+.compact-analysis-row details .compact-analysis-fields {
   max-height: 420px;
   overflow: auto;
   padding: 12px;
@@ -65,5 +93,10 @@
 @media (max-width: 700px) {
   .compact-analysis-row-main {
     grid-template-columns: 1fr;
+  }
+
+  .compact-analysis-field {
+    grid-template-columns: 1fr;
+    gap: 2px;
   }
 }

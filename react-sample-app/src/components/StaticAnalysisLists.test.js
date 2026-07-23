@@ -18,31 +18,43 @@ beforeEach(() => {
 
 test('array list automatically requests all static analyses', async () => {
   postArrayStaticAnalysis.mockResolvedValue({
-    results: [{ id: 'static_mex', status: 'success', data: { mex: 2 } }],
+    results: [{
+      id: 'build_prefix_sum',
+      status: 'success',
+      data: { prefix_sum: [0, 1, 3] },
+    }],
   });
   render(<StaticArrayAnalysisList values={[0, 1, 3]} />);
 
   await waitFor(() => expect(postArrayStaticAnalysis).toHaveBeenCalledWith([0, 1, 3]));
-  expect(await screen.findByText('静的MEX')).toBeInTheDocument();
+  expect(await screen.findAllByText('0, 1, 3')).toHaveLength(2);
+  expect(screen.queryByText('{"prefix_sum":[0,1,3]}')).not.toBeInTheDocument();
 });
 
 test('graph list automatically requests the selected graph mode', async () => {
   postGraphStaticAnalysis.mockResolvedValue({
-    results: [{ id: 'scc', status: 'success', data: { sccs: [[0], [1]] } }],
+    results: [{
+      id: 'union_find',
+      status: 'success',
+      data: { parents: [0, 0], components: [[0, 1]] },
+    }],
   });
-  const adjacentList = [[1], []];
+  const adjacentList = [[1], [0]];
   render(
     <GraphStaticAnalysisList
-      graphType="directed"
+      graphType="undirected"
       hasWeights={false}
       adjacentList={adjacentList}
     />,
   );
 
   await waitFor(() => expect(postGraphStaticAnalysis).toHaveBeenCalledWith(
-    'directed',
+    'undirected',
     false,
     adjacentList,
   ));
-  expect(await screen.findByText('SCC')).toBeInTheDocument();
+  expect(await screen.findAllByText('1, 1')).toHaveLength(2);
+  expect(screen.getAllByText('1, 2')).toHaveLength(2);
+  expect(screen.queryByText('{"parents":[0,0],"components":[[0,1]]}'))
+    .not.toBeInTheDocument();
 });

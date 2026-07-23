@@ -4,6 +4,7 @@ import {
   StaticAnalysisItem,
 } from '../../../common/CompactAnalysisList';
 import { postArrayStaticAnalysis } from '../../../../util/ArraySendApis';
+import { formatArrayStaticAnalysis } from '../../../../util/formatArrayStaticAnalysis';
 
 const TITLES: Record<string, string> = {
   build_prefix_sum: '累積和',
@@ -40,5 +41,13 @@ export function StaticArrayAnalysisList({ values }: { values: number[] }) {
     };
   }, [values]);
 
-  return <CompactAnalysisList results={results} titles={TITLES} loading={loading} error={error} />;
+  return (
+    <CompactAnalysisList
+      results={results}
+      titles={TITLES}
+      loading={loading}
+      error={error}
+      formatResult={formatArrayStaticAnalysis}
+    />
+  );
 }

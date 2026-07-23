@@ -4,6 +4,7 @@ import {
   StaticAnalysisItem,
 } from '../../../common/CompactAnalysisList';
 import { postGraphStaticAnalysis } from '../../../../util/GraphStaticAnalysisApi';
+import { formatGraphStaticAnalysis } from '../../../../util/formatGraphStaticAnalysis';
 
 const TITLES: Record<string, string> = {
   connected_components: '連結成分',
@@ -53,5 +54,13 @@ export function GraphStaticAnalysisList({
     };
   }, [graphType, hasWeights, adjacentList]);
 
-  return <CompactAnalysisList results={results} titles={TITLES} loading={loading} error={error} />;
+  return (
+    <CompactAnalysisList
+      results={results}
+      titles={TITLES}
+      loading={loading}
+      error={error}
+      formatResult={formatGraphStaticAnalysis}
+    />
+  );
 }
