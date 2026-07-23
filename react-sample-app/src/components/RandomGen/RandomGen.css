@@ -1,0 +1,152 @@
+.random-gen-form,
+.random-gen-result,
+.random-gen-history {
+  padding: 20px;
+  border: 1px solid #dbe4ef;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.random-gen-structure-tabs,
+.random-gen-actions,
+.random-gen-options,
+.random-gen-seed-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+}
+
+.random-gen-structure-tabs {
+  margin-bottom: 18px;
+}
+
+.random-gen-structure-tabs button,
+.random-gen-actions button,
+.random-gen-seed-row button,
+.random-gen-history button,
+.random-gen-primary {
+  padding: 9px 14px;
+  border: 1px solid #94a3b8;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.random-gen-structure-tabs button.active,
+.random-gen-primary {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #fff;
+}
+
+.random-gen-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.random-gen-field {
+  display: grid;
+  gap: 5px;
+  flex: 1 1 180px;
+  font-weight: 700;
+}
+
+.random-gen-field input,
+.random-gen-field select {
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font: inherit;
+}
+
+.random-gen-options,
+.random-gen-seed-row {
+  margin-top: 16px;
+}
+
+.random-gen-toggle {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.random-gen-weight-options .random-gen-field {
+  max-width: 220px;
+}
+
+.random-gen-primary {
+  margin-top: 18px;
+  font-weight: 800;
+}
+
+.random-gen-error {
+  padding: 10px;
+  border-radius: 7px;
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.random-gen-result-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.random-gen-message {
+  color: #166534;
+}
+
+.random-gen-output {
+  max-height: 520px;
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+  white-space: pre;
+}
+
+.random-gen-recipe dl {
+  display: grid;
+  gap: 6px;
+}
+
+.random-gen-recipe dl div {
+  display: grid;
+  grid-template-columns: minmax(150px, 220px) 1fr;
+}
+
+.random-gen-recipe dt {
+  font-weight: 800;
+}
+
+.random-gen-recipe dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.random-gen-history ul {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.random-gen-history li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.random-gen-history li div {
+  display: grid;
+  gap: 3px;
+}

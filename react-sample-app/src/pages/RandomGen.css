@@ -1,0 +1,27 @@
+.random-gen-page {
+  display: grid;
+  gap: 22px;
+  width: min(1200px, calc(100% - 32px));
+  margin: 32px auto 64px;
+}
+
+.random-gen-page header h1 {
+  margin: 6px 0;
+}
+
+.random-gen-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: #1d4ed8;
+  background: #dbeafe;
+  font-weight: 800;
+}
+
+.random-gen-page-error {
+  padding: 14px;
+  border: 1px solid #fecaca;
+  border-radius: 9px;
+  color: #b91c1c;
+  background: #fef2f2;
+}
