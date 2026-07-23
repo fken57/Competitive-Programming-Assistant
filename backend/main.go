@@ -1,6 +1,7 @@
 package main
 
 import (
+	randomgendomain "backend/internal/domain/randomgen"
 	"backend/internal/domain/user"
 	"context"
 	"log"
@@ -11,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
+	randomgenrepo "backend/internal/infrastructure/randomgen"
 	graphrepo "backend/internal/infrastructure/unweightedgraph"
 	userrepo "backend/internal/infrastructure/user"
 	costgraphrepo "backend/internal/infrastructure/weightedgraph"
@@ -116,9 +118,24 @@ func main() {
 	g.POST("/array/longest_distinct_subarray", arrayHandler.LongestDistinctSubarray)
 	g.POST("/array/static/analyze", arrayHandler.AnalyzeStatic)
 
-	randomGenUsecase := randomgenusecase.NewRandomGenUsecase()
+	var savedCaseRepository randomgendomain.SavedCaseRepository
+	if userDB == nil {
+		savedCaseRepository = randomgenrepo.NewMemorySavedCaseRepository()
+	} else {
+		if err := randomgenrepo.EnsureSavedCaseSchema(context.Background(), userDB); err != nil {
+			log.Fatal(err)
+		}
+		savedCaseRepository = randomgenrepo.NewPostgresSavedCaseRepository(userDB)
+	}
+	randomGenUsecase := randomgenusecase.NewRandomGenUsecase(savedCaseRepository)
 	randomGenHandler := randomgenhandler.NewRandomGenHandler(randomGenUsecase)
 	g.POST("/random-gen/generate", randomGenHandler.Generate)
+	g.POST("/random-gen/history", randomGenHandler.SaveHistory, userAuthHandler.RequireAuth)
+	g.GET("/random-gen/history", randomGenHandler.ListHistory, userAuthHandler.RequireAuth)
+	g.POST("/random-gen/killed-cases", randomGenHandler.SaveKilledCase, userAuthHandler.RequireAuth)
+	g.GET("/random-gen/killed-cases", randomGenHandler.ListKilledCases, userAuthHandler.RequireAuth)
+	g.POST("/random-gen/presets", randomGenHandler.SavePreset, userAuthHandler.RequireAuth)
+	g.GET("/random-gen/presets", randomGenHandler.ListPresets, userAuthHandler.RequireAuth)
 
 	g.POST("/users/create", userAuthHandler.Register)
 
