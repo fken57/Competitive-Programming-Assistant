@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import { VisualGraphData, VisualNode, VisualEdge } from '../../util/graphUtils';
 import { applyStaticGraphLayout, GraphLayoutMode, PositionedVisualEdge, PositionedVisualNode, resolveStaticGraphLinks } from '../../util/graphLayout';
+import { canVisualizeGraph, MAX_GRAPH_VISUALIZATION_NODES } from '../../util/graphVisualizationPolicy';
 import './GraphVisualizer.css';
 
 type GraphVisualizerProps = {
@@ -32,8 +33,11 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
   layoutMode = 'force'
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
+  const visualizationSkipped = Boolean(graphData && !canVisualizeGraph(graphData));
 
   useEffect(() => {
+    if (visualizationSkipped) return;
+
     // If not loaded or error, don't draw. Clear previous drawing if any.
     if (!isDataLoaded || errorMessage || !graphData) {
       if (svgRef.current) {
@@ -188,7 +192,7 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
     return () => {
       simulation.stop();
     };
-  }, [graphData, isDataLoaded, errorMessage, graphType, nodeColorFn, edgeColorFn, nodeStrokeColorFn, nodeStrokeWidthFn, edgeWidthFn, edgeDashArrayFn, layoutMode]);
+  }, [graphData, isDataLoaded, errorMessage, graphType, nodeColorFn, edgeColorFn, nodeStrokeColorFn, nodeStrokeWidthFn, edgeWidthFn, edgeDashArrayFn, layoutMode, visualizationSkipped]);
 
   return (
     <div className="graph-visualizer-container">
@@ -202,13 +206,21 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
           <h3>D3.js Graph Visualizer</h3>
           <p>左側のフォームからグラフデータを入力して送信してください。</p>
         </div>
+      ) : visualizationSkipped && graphData ? (
+        <div className="graph-message info">
+          <h3>可視化を省略しました</h3>
+          <p>
+            頂点数が{MAX_GRAPH_VISUALIZATION_NODES}を超えているため、D3描画は実行しません。
+            頂点数: {graphData.nodes.length}、辺数: {graphData.edges.length}
+          </p>
+        </div>
       ) : null}
       
       {/* SVG is always present to measure its dimensions, but might be empty if not loaded */}
       <svg 
         ref={svgRef} 
         className="graph-svg" 
-        style={{ opacity: isDataLoaded && !errorMessage ? 1 : 0 }}
+        style={{ opacity: isDataLoaded && !errorMessage && !visualizationSkipped ? 1 : 0 }}
       />
     </div>
   );
