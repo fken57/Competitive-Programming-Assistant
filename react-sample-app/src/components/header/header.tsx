@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AuthDialog, AuthDialogMode } from '../Auth/AuthDialog';
 import { MyButton } from '../common/button/Button';
+import { SegmentedNavigation } from '../common/SegmentedNavigation';
 import { useAuth } from '../../hooks/Auth/useAuth';
 import './Header.css';
 
@@ -12,7 +14,7 @@ function Header() {
     <>
       <header className="header-container">
         <div className="header-alignment">
-          <h1 className="header-title">Competitive Programming Assistant</h1>
+          <Link className="header-title" to="/">Competitive Programming Assistant</Link>
           <div className="header-button-alignment">
             {loading ? (
               <span className="header-auth-state">認証確認中…</span>
@@ -29,6 +31,16 @@ function Header() {
             )}
           </div>
         </div>
+        <SegmentedNavigation
+          className="header-navigation"
+          label="ページ切替"
+          options={[
+            { to: '/', label: 'Home', end: true },
+            { to: '/graph', label: 'Graph' },
+            { to: '/array', label: 'Array' },
+            { to: '/random-gen', label: 'Random Gen' },
+          ]}
+        />
       </header>
       {dialogMode && (
         <AuthDialog
