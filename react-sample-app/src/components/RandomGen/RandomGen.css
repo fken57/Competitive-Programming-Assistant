@@ -68,6 +68,17 @@
   gap: 3px;
 }
 
+.random-gen-library-filter {
+  display: grid;
+  gap: 5px;
+}
+
+.random-gen-library-filter input {
+  padding: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+}
+
 .random-gen-structure-tabs,
 .random-gen-actions,
 .random-gen-options,

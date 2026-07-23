@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { GenerationHistory } from '../components/RandomGen/GenerationHistory';
 import { GenerationResult } from '../components/RandomGen/GenerationResult';
 import { RandomGenForm } from '../components/RandomGen/RandomGenForm';
@@ -25,10 +25,12 @@ import {
   loadGenerationHistory,
   saveGenerationRecipe,
 } from '../util/randomGenHistoryStorage';
+import { decodeRecipeFromURL } from '../util/randomGenRecipeUrl';
 import './RandomGen.css';
 
 export default function RandomGenPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const sharedRecipeHandled = useRef(false);
   const [result, setResult] = useState<GeneratedCase | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [killedCases, setKilledCases] = useState<KilledCase[]>([]);
@@ -65,7 +67,7 @@ export default function RandomGenPage() {
     };
   }, [user]);
 
-  const generate = async (recipe: GenerationRecipe) => {
+  const generate = useCallback(async (recipe: GenerationRecipe) => {
     setLoading(true);
     setError('');
     try {
@@ -88,7 +90,7 @@ export default function RandomGenPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   const saveCurrentRecipe = () => {
     if (!result) return;
@@ -106,6 +108,29 @@ export default function RandomGenPage() {
   const regenerateHistory = (item: HistoryItem) => {
     void generate(item.recipe);
   };
+
+  useEffect(() => {
+    if (authLoading || sharedRecipeHandled.current) return;
+    const encodedRecipe = new URLSearchParams(window.location.search).get('recipe');
+    if (!encodedRecipe) {
+      sharedRecipeHandled.current = true;
+      return;
+    }
+    sharedRecipeHandled.current = true;
+    try {
+      const recipe = decodeRecipeFromURL(encodedRecipe);
+      if (recipe.generatorVersion !== '0.1.0') {
+        setError(
+          `このケースは generator v${recipe.generatorVersion} で生成されました。`
+          + ' 現在のgeneratorでは完全再現できない可能性があります。',
+        );
+        return;
+      }
+      void generate(recipe);
+    } catch {
+      setError('共有URLのrecipeを読み取れませんでした');
+    }
+  }, [authLoading, generate]);
 
   const handleSaveKilledCase = async (input: KilledCaseInput) => {
     const saved = await saveKilledCase(input);

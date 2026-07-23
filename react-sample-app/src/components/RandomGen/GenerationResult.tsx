@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { GeneratedCase } from '../../types/RandomGen';
+import { createRecipeShareURL } from '../../util/randomGenRecipeUrl';
 import './RandomGen.css';
 
 type Props = {
@@ -38,12 +39,18 @@ export function GenerationResult({
     setMessage('入力をコピーしました');
   };
 
+  const copyShareURL = async () => {
+    await navigator.clipboard.writeText(createRecipeShareURL(recipe, window.location.href));
+    setMessage('共有URLをコピーしました');
+  };
+
   return (
     <section className="random-gen-result">
       <div className="random-gen-result-heading">
         <h2>生成結果</h2>
         <div className="random-gen-actions">
           <button type="button" onClick={copyInput}>Copy</button>
+          <button type="button" onClick={copyShareURL}>Copy share URL</button>
           <button type="button" onClick={() => downloadGeneratedInput(inputText, recipe.seed)}>
             Download .txt
           </button>

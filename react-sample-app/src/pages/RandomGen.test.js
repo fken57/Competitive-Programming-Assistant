@@ -14,7 +14,7 @@ jest.mock('../util/RandomGenApi', () => ({
   saveServerHistory: jest.fn(),
 }));
 jest.mock('../hooks/Auth/useAuth', () => ({
-  useAuth: () => ({ user: null }),
+  useAuth: () => ({ user: null, loading: false }),
 }));
 
 beforeEach(() => {

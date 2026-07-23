@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { GeneratorPreset, KilledCase } from '../../types/RandomGen';
 import './RandomGen.css';
 
@@ -13,13 +13,25 @@ export function SavedCaseLibrary({
   onRegenerateKilled: (item: KilledCase) => void;
   onRegeneratePreset: (item: GeneratorPreset) => void;
 }) {
+  const [tagFilter, setTagFilter] = useState('');
+  const visibleKilledCases = useMemo(
+    () => killedCases.filter((item) =>
+      !tagFilter || item.reasonTags.some((tag) => tag.includes(tagFilter))
+    ),
+    [killedCases, tagFilter],
+  );
+
   return (
     <section className="random-gen-library">
       <div>
         <h2>撃墜ケース</h2>
-        {killedCases.length === 0 ? <p>保存された撃墜ケースはありません。</p> : (
+        <label className="random-gen-library-filter">
+          タグ検索
+          <input value={tagFilter} onChange={(event) => setTagFilter(event.target.value)} />
+        </label>
+        {visibleKilledCases.length === 0 ? <p>条件に一致する撃墜ケースはありません。</p> : (
           <ul>
-            {killedCases.map((item) => (
+            {visibleKilledCases.map((item) => (
               <li key={item.id}>
                 <div>
                   <strong>{item.title}</strong>
