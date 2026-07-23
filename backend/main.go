@@ -17,10 +17,12 @@ import (
 	//"github.com/jmoiron/sqlx"
 
 	arrayhandler "backend/internal/handler/array"
+	randomgenhandler "backend/internal/handler/randomgen"
 	graphhandler "backend/internal/handler/unweightedgraph"
 	userhandler "backend/internal/handler/user"
 	costgraphhandler "backend/internal/handler/weightedgraph"
 	arrayusecase "backend/internal/usecase/array"
+	randomgenusecase "backend/internal/usecase/randomgen"
 	graphusecase "backend/internal/usecase/unweightedgraph"
 	userusecase "backend/internal/usecase/userusecase"
 	costgraphusecase "backend/internal/usecase/weightedgraph"
@@ -101,6 +103,10 @@ func main() {
 	g.POST("/array/next_smaller_to_right_strict", arrayHandler.NextSmallerToRightStrict)
 	g.POST("/array/longest_distinct_subarray", arrayHandler.LongestDistinctSubarray)
 	g.POST("/array/static/analyze", arrayHandler.AnalyzeStatic)
+
+	randomGenUsecase := randomgenusecase.NewRandomGenUsecase()
+	randomGenHandler := randomgenhandler.NewRandomGenHandler(randomGenUsecase)
+	g.POST("/random-gen/generate", randomGenHandler.Generate)
 
 	g.POST("/users/create", userAuthHandler.Register)
 
