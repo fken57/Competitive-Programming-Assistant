@@ -1,20 +1,21 @@
 package main
 
 import (
+	"backend/internal/domain/user"
+	"context"
+	"log"
 	"net/http"
+	"os"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	_ "github.com/lib/pq"
-
-	//"os"
 	graphrepo "backend/internal/infrastructure/unweightedgraph"
 	userrepo "backend/internal/infrastructure/user"
 	costgraphrepo "backend/internal/infrastructure/weightedgraph"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
-	//"github.com/jmoiron/sqlx"
 
 	arrayhandler "backend/internal/handler/array"
 	randomgenhandler "backend/internal/handler/randomgen"
@@ -29,28 +30,34 @@ import (
 )
 
 func main() {
-	//dsn := "host=127.0.0.1 port=5432 user=ken57 password=post1810 dbname=authdb sslmode=disable"
-	//userDB, err := sqlx.Connect("postgres", dsn)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//defer userDB.Close()
+	var userRepository user.UserRepository
+	var sessionRepository user.SessionRepository
+	var userDB *sqlx.DB
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		log.Print("DATABASE_URL is not set; authentication uses in-memory storage")
+		memoryRepository := userrepo.NewMemoryAuthRepository()
+		userRepository = memoryRepository
+		sessionRepository = memoryRepository
+	} else {
+		var err error
+		userDB, err = sqlx.Connect("pgx", databaseURL)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer userDB.Close()
+		if err := userrepo.EnsureAuthSchema(context.Background(), userDB); err != nil {
+			log.Fatal(err)
+		}
+		userRepository = userrepo.NewUserRepository(userDB)
+		sessionRepository = userrepo.NewSessionRepository(userDB)
+	}
 
-	const initUserSQL = `CREATE TABLE IF NOT EXISTS users (
-		id VARCHAR(36) PRIMARY KEY,
-		username VARCHAR(255) UNIQUE NOT NULL,
-		password_hash VARCHAR(255) NOT NULL,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-	)`
-
-	//_, err = userDB.Exec(initUserSQL)
-	//if err != nil {
-	//	panic(err)
-	//}
-
-	userRepo := userrepo.NewFakeUserRepository(nil)
-	userUsecase := userusecase.NewUserUsecase(userRepo)
-	userAuthHandler := userhandler.NewUserAuthHandler(userUsecase)
+	userUsecase := userusecase.NewUserUsecase(userRepository, sessionRepository)
+	userAuthHandler := userhandler.NewUserAuthHandler(
+		userUsecase,
+		os.Getenv("APP_ENV") == "production",
+	)
 
 	noCostGraphRepository := graphrepo.NewGraphFakeRepository(nil)
 	noCostGraphUseCase := graphusecase.NewNoCostGraphUseCase(noCostGraphRepository)
@@ -60,7 +67,12 @@ func main() {
 
 	e.Use(middleware.Logger()) // ➔ 誰がどのURLにアクセスして、何番のエラーになったかを全て記録する
 	e.Use(middleware.Recover())
-	e.Use(middleware.CORS())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:     []string{environmentOrDefault("FRONTEND_ORIGIN", "http://localhost:3000")},
+		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPatch, http.MethodDelete, http.MethodOptions},
+		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowCredentials: true,
+	}))
 
 	g := e.Group("/apis")
 
@@ -111,10 +123,19 @@ func main() {
 	g.POST("/users/create", userAuthHandler.Register)
 
 	g.POST("/users/login", userAuthHandler.Login)
+	g.POST("/users/logout", userAuthHandler.Logout)
+	g.GET("/users/me", userAuthHandler.Me, userAuthHandler.RequireAuth)
 
 	g.GET("/hello", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World.\n")
 	})
 
 	e.Logger.Fatal(e.Start("0.0.0.0:8080"))
+}
+
+func environmentOrDefault(name, fallback string) string {
+	if value := os.Getenv(name); value != "" {
+		return value
+	}
+	return fallback
 }
