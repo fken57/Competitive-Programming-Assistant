@@ -3,3 +3,14 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
 }
+
+.graph-algorithm-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.graph-algorithm-groups h2 {
+    margin: 0 0 14px;
+    color: #172554;
+}

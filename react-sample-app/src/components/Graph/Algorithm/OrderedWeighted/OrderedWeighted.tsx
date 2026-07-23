@@ -15,10 +15,22 @@ export function OrderedWeightedAlgorithm({ adjacentList, graphType }: OrderedWei
     const canRunTreeAlgorithms = graphType === 'undirected' && isUndirectedTree(adjacentList);
 
     return (
-        <div className="unweighted-ordered-algorithm-container">
-            <Dijkstra adjacentList={adjacentList} graphType={graphType} />
-            {graphType === 'undirected' && <Prim adjacentList={adjacentList} />}
-            {canRunTreeAlgorithms && <WeightedTreeDiameter adjacentList={adjacentList} />}
+        <div className="graph-algorithm-groups">
+            {graphType === 'undirected' && (
+                <section>
+                    <h2>静的Analyze</h2>
+                    <div className="unweighted-ordered-algorithm-container">
+                        <Prim adjacentList={adjacentList} />
+                        {canRunTreeAlgorithms && <WeightedTreeDiameter adjacentList={adjacentList} />}
+                    </div>
+                </section>
+            )}
+            <section>
+                <h2>クエリ</h2>
+                <div className="unweighted-ordered-algorithm-container">
+                    <Dijkstra adjacentList={adjacentList} graphType={graphType} />
+                </div>
+            </section>
         </div>
     );
 }

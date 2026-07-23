@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import './BFS.css'
 import { MyButton } from '../../../common/button/Button';
 import { useUnweightedGraphApi } from '../../../../hooks/Graph/useUnweightedGraphApi';
 import { GRAPH_ENDPOINTS } from '../../../../util/NoCostGraphSendApis';
 import { GraphVisualizer } from '../../GraphVisualizer';
 import { buildBFSVisualGraphData } from '../../../../util/BFSGraphJsonTransfrom';
+import { parseStartVertex } from '../../../../util/startVertexUtils';
 
 type UnweightedUnorderedAlgorithmProps = {
     adjacentList: number[][];
@@ -14,16 +15,26 @@ type UnweightedUnorderedAlgorithmProps = {
 export function BFS({ adjacentList, graphType = 'undirected' }: UnweightedUnorderedAlgorithmProps) {
         
     const { postGraphData, loading, error, data } = useUnweightedGraphApi();
+    const [startVertex, setStartVertex] = useState('1');
+    const [validationError, setValidationError] = useState<string | null>(null);
 
     const resultVisualData = useMemo(() => {
         return buildBFSVisualGraphData(adjacentList, data, graphType);
     }, [data, adjacentList, graphType]);
 
     const HandleSubmit = async () => {
+        let parsedStartVertex: number;
+        try {
+            parsedStartVertex = parseStartVertex(startVertex, adjacentList.length);
+            setValidationError(null);
+        } catch (caughtError) {
+            setValidationError(caughtError instanceof Error ? caughtError.message : '開始頂点が不正です。');
+            return;
+        }
         const payload = {
             vertex_count: adjacentList.length,
             neighbors: adjacentList,
-            start_vertex: 0
+            start_vertex: parsedStartVertex
         };
 
         try {
@@ -35,6 +46,17 @@ export function BFS({ adjacentList, graphType = 'undirected' }: UnweightedUnorde
 
     return(
         <div className="bfs-algorithm-container">
+            <div className="form-outline-input-area">
+                <input
+                    type="number"
+                    min={1}
+                    max={adjacentList.length}
+                    aria-label="BFSの開始頂点"
+                    value={startVertex}
+                    onChange={(event) => setStartVertex(event.target.value)}
+                />
+            </div>
+            {validationError && <div className="bfs-error-message">エラー: {validationError}</div>}
             <div className="button-container">
                 <MyButton color="blue" onClick={HandleSubmit}>
                     {loading ? "実行中..." : "BFSを実行"}
