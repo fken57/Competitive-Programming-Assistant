@@ -1,0 +1,67 @@
+.auth-dialog-backdrop {
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.auth-dialog {
+  position: relative;
+  width: min(420px, 100%);
+  padding: 26px;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.auth-dialog-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: 0;
+  background: transparent;
+  font-size: 1.7rem;
+  cursor: pointer;
+}
+
+.auth-dialog form,
+.auth-dialog label {
+  display: grid;
+  gap: 8px;
+}
+
+.auth-dialog form {
+  gap: 16px;
+}
+
+.auth-dialog input {
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font: inherit;
+}
+
+.auth-dialog form button {
+  padding: 10px;
+  border: 0;
+  border-radius: 7px;
+  background: #16a34a;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.auth-dialog-error {
+  margin: 0;
+  color: #b91c1c;
+}
+
+.auth-dialog-switch {
+  margin-top: 14px;
+  border: 0;
+  color: #1d4ed8;
+  background: transparent;
+  cursor: pointer;
+}

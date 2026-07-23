@@ -23,4 +23,22 @@
 .header-button-alignment{
     display:flex;
     gap:12px;
+    align-items: center;
+}
+
+.header-auth-state {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+@media (max-width: 760px) {
+    .header-alignment {
+        align-items: flex-start;
+        gap: 12px;
+        flex-direction: column;
+    }
+
+    .header-title {
+        font-size: 24px;
+    }
 }
