@@ -9,13 +9,14 @@ export const useUnweightedGraphApi = () => {
     const postGraphData = useCallback(async (endpoint: GraphEndpoint | string, requestData: UnweightedGraphRequest) => {
         setLoading(true);
         setError(null);
+        setData(null);
         try {
             const result = await postUnweightedGraph(endpoint, requestData);
             setData(result);
             return result;
         } catch (err) {
             setError(err instanceof Error ? err : new Error('An unknown error occurred'));
-            throw err;
+            return null;
         } finally {
             setLoading(false);
         }

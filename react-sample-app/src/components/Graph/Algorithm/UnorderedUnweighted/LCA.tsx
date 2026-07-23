@@ -30,9 +30,11 @@ export function LCA({ adjacentList }: Props) {
                 return [values[0] - 1, values[1] - 1] as [number, number];
             });
             setInputError('');
-            await postGraphData(GRAPH_ENDPOINTS.LCA, { vertex_count: adjacentList.length, neighbors: adjacentList, root: parsedRoot, queries });
-            setSubmittedQueries(queries);
-            setQueryIndex(0);
+            const result = await postGraphData(GRAPH_ENDPOINTS.LCA, { vertex_count: adjacentList.length, neighbors: adjacentList, root: parsedRoot, queries });
+            if (result !== null) {
+                setSubmittedQueries(queries);
+                setQueryIndex(0);
+            }
         } catch (submitError) {
             setInputError(submitError instanceof Error ? submitError.message : '入力エラーが発生しました。');
         }

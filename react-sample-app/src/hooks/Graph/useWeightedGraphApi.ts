@@ -9,13 +9,14 @@ export const useWeightedGraphApi = () => {
     const postGraphData = useCallback(async (endpoint: WeightedGraphEndpoint | string, requestData: CostGraphNeighborListRequest) => {
         setLoading(true);
         setError(null);
+        setData(null);
         try {
             const result = await postWeightedGraph(endpoint, requestData);
             setData(result);
             return result;
         } catch (err) {
             setError(err instanceof Error ? err : new Error('An unknown error occurred'));
-            throw err;
+            return null;
         } finally {
             setLoading(false);
         }

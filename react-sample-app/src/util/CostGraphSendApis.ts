@@ -1,3 +1,5 @@
+import { getApiErrorMessage } from './apiResponseUtils';
+
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/apis';
 
 export interface WeightedEdge {
@@ -33,7 +35,7 @@ export const postWeightedGraph = async <TResponse = any>(
     });
     console.log('送信先URL:', fullUrl);
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(await getApiErrorMessage(response));
     }
     return response.json();
 }
