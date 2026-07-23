@@ -81,7 +81,6 @@
   border-radius: 7px;
 }
 
-.random-gen-structure-tabs,
 .random-gen-actions,
 .random-gen-options,
 .random-gen-seed-row {
@@ -95,7 +94,6 @@
   margin-bottom: 18px;
 }
 
-.random-gen-structure-tabs button,
 .random-gen-actions button,
 .random-gen-seed-row button,
 .random-gen-history button,
@@ -107,7 +105,6 @@
   cursor: pointer;
 }
 
-.random-gen-structure-tabs button.active,
 .random-gen-primary {
   border-color: #2563eb;
   background: #2563eb;
@@ -139,12 +136,6 @@
 .random-gen-options,
 .random-gen-seed-row {
   margin-top: 16px;
-}
-
-.random-gen-toggle {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
 }
 
 .random-gen-weight-options .random-gen-field {

@@ -1,5 +1,5 @@
 import React from 'react';
-import './InputSourceToggle.css';
+import { SegmentedControl } from './SegmentedControl';
 
 export type InputSourceMode = 'manual' | 'text-file';
 
@@ -10,26 +10,15 @@ type InputSourceToggleProps = {
 
 export function InputSourceToggle({ mode, onChange }: InputSourceToggleProps) {
   return (
-    <fieldset className="input-source-toggle">
-      <legend>入力方法</legend>
-      <label>
-        <input
-          type="radio"
-          name="input-source"
-          checked={mode === 'manual'}
-          onChange={() => onChange('manual')}
-        />
-        直接入力
-      </label>
-      <label>
-        <input
-          type="radio"
-          name="input-source"
-          checked={mode === 'text-file'}
-          onChange={() => onChange('text-file')}
-        />
-        .txt入力
-      </label>
-    </fieldset>
+    <SegmentedControl
+      legend="入力方法"
+      name="input-source"
+      value={mode}
+      options={[
+        { value: 'manual', label: '直接入力' },
+        { value: 'text-file', label: '.txt入力' },
+      ]}
+      onChange={onChange}
+    />
   );
 }

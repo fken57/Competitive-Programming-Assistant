@@ -1,4 +1,5 @@
 import React from 'react';
+import { SegmentedControl } from '../common/SegmentedControl';
 import './StateChooseButton.css';
 
 type StateChooseToggleProps = {
@@ -23,28 +24,16 @@ function GraphTypeChoice({ graphType, setGraphType }: { graphType: string; setGr
             <div className="graph-type-select-text">
                 グラフの種類を選択してください。
             </div>
-            <div className="tab-3">
-                <label>
-                    <input 
-                        type="radio" 
-                        name="state-tab" 
-                        className="tab-3-group" 
-                        checked={graphType === 'undirected'} 
-                        onChange={() => setGraphType('undirected')} 
-                    />
-                    無向
-                </label>
-                <label>
-                    <input 
-                        type="radio" 
-                        name="state-tab" 
-                        className="tab-3-group" 
-                        checked={graphType === 'directed'} 
-                        onChange={() => setGraphType('directed')} 
-                    />
-                    有向
-                </label>
-            </div>
+            <SegmentedControl
+                legend="グラフの種類"
+                name="state-tab"
+                value={graphType}
+                options={[
+                    { value: 'undirected', label: '無向' },
+                    { value: 'directed', label: '有向' },
+                ]}
+                onChange={setGraphType}
+            />
         </div>
     )
 }
@@ -55,28 +44,16 @@ function WeightChoice({ hasWeights, setHasWeights }: { hasWeights: boolean; setH
         <div className="graph-type-select-text">
             重みの有無を選択してください。
         </div>
-        <div className="tab-3">
-            <label>
-                <input 
-                    type="radio" 
-                    name="weight-tab" 
-                    className="tab-3-group" 
-                    checked={!hasWeights} 
-                    onChange={() => setHasWeights(false)} 
-                />
-                重みなし
-            </label>
-            <label>
-                <input 
-                    type="radio" 
-                    name="weight-tab" 
-                    className="tab-3-group" 
-                    checked={hasWeights} 
-                    onChange={() => setHasWeights(true)} 
-                />
-                重み付き
-            </label>
-        </div>
+        <SegmentedControl
+            legend="重みの有無"
+            name="weight-tab"
+            value={hasWeights ? 'weighted' : 'unweighted'}
+            options={[
+                { value: 'unweighted', label: '重みなし' },
+                { value: 'weighted', label: '重み付き' },
+            ]}
+            onChange={(value) => setHasWeights(value === 'weighted')}
+        />
     </div>
     )
 }

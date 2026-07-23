@@ -1,5 +1,7 @@
 import React, { FormEvent, useState } from 'react';
 import { GenerationRecipe, StructureType } from '../../types/RandomGen';
+import { SegmentedControl } from '../common/SegmentedControl';
+import { ToggleSwitch } from '../common/ToggleSwitch';
 import {
   MAX_RANDOM_GEN_N,
   createRandomSeed,
@@ -44,23 +46,6 @@ function NumberInput({
     <label className="random-gen-field">
       <span>{label}</span>
       <input type="number" value={value} onChange={(event) => onChange(Number(event.target.value))} />
-    </label>
-  );
-}
-
-function Toggle({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}) {
-  return (
-    <label className="random-gen-toggle">
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
-      <span>{label}</span>
     </label>
   );
 }
@@ -180,18 +165,18 @@ export function RandomGenForm({ loading, onGenerate }: Props) {
 
   return (
     <form className="random-gen-form" onSubmit={handleSubmit}>
-      <div className="random-gen-structure-tabs" role="group" aria-label="生成する構造">
-        {(['array', 'tree', 'graph'] as StructureType[]).map((type) => (
-          <button
-            className={structureType === type ? 'active' : ''}
-            key={type}
-            type="button"
-            onClick={() => handleStructureChange(type)}
-          >
-            {type === 'array' ? '配列' : type === 'tree' ? '木' : 'グラフ'}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        className="random-gen-structure-tabs"
+        legend="生成する構造"
+        name="random-gen-structure"
+        value={structureType}
+        options={[
+          { value: 'array', label: '配列' },
+          { value: 'tree', label: '木' },
+          { value: 'graph', label: 'グラフ' },
+        ]}
+        onChange={handleStructureChange}
+      />
 
       <div className="random-gen-form-grid">
         <label className="random-gen-field">
@@ -229,20 +214,20 @@ export function RandomGenForm({ loading, onGenerate }: Props) {
 
       {structureType === 'tree' && (
         <div className="random-gen-options">
-          <Toggle label="ラベルをシャッフル" checked={shuffleLabels} onChange={setShuffleLabels} />
+          <ToggleSwitch label="ラベルをシャッフル" checked={shuffleLabels} onChange={setShuffleLabels} />
         </div>
       )}
       {structureType === 'graph' && (
         <div className="random-gen-options">
-          <Toggle label="有向" checked={directed} onChange={setDirected} />
-          <Toggle label="連結" checked={connected} onChange={setConnected} />
-          <Toggle label="自己ループを許可" checked={allowSelfLoop} onChange={setAllowSelfLoop} />
-          <Toggle label="多重辺を許可" checked={allowMultiEdge} onChange={setAllowMultiEdge} />
+          <ToggleSwitch label="有向" checked={directed} onChange={setDirected} />
+          <ToggleSwitch label="連結" checked={connected} onChange={setConnected} />
+          <ToggleSwitch label="自己ループを許可" checked={allowSelfLoop} onChange={setAllowSelfLoop} />
+          <ToggleSwitch label="多重辺を許可" checked={allowMultiEdge} onChange={setAllowMultiEdge} />
         </div>
       )}
       {structureType !== 'array' && (
         <div className="random-gen-options random-gen-weight-options">
-          <Toggle label="重み付き" checked={weighted} onChange={setWeighted} />
+          <ToggleSwitch label="重み付き" checked={weighted} onChange={setWeighted} />
           {weighted && (
             <>
               <NumberInput label="最小重み" value={minWeight} onChange={setMinWeight} />
@@ -261,7 +246,7 @@ export function RandomGenForm({ loading, onGenerate }: Props) {
       </div>
 
       <div className="random-gen-options">
-        <Toggle label="Tを付ける" checked={hasT} onChange={setHasT} />
+        <ToggleSwitch label="Tを付ける" checked={hasT} onChange={setHasT} />
         {hasT && <NumberInput label="T" value={testCount} onChange={setTestCount} />}
       </div>
 
