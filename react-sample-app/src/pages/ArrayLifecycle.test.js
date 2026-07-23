@@ -54,3 +54,14 @@ test('submitting a new array resets prior algorithm result state', () => {
   submitArray('2\n8 5');
   expect(screen.getByTestId('array-algorithm-panel')).toHaveAttribute('data-result-state', 'clean');
 });
+
+test('changing the input source clears the loaded array', () => {
+  render(<ArrayPage />);
+  submitArray('3\n1 2 3');
+
+  fireEvent.click(screen.getByRole('radio', { name: '.txt入力' }));
+
+  expect(screen.queryByTestId('array-algorithm-panel')).not.toBeInTheDocument();
+  expect(screen.queryByRole('textbox', { name: '配列の標準入力' })).not.toBeInTheDocument();
+  expect(screen.getByLabelText('.txtファイル')).toBeInTheDocument();
+});

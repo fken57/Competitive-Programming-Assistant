@@ -20,12 +20,22 @@ const ArrayPage: React.FC = () => {
     setArrayRevision((revision) => revision + 1);
   };
 
+  const handleSourceChange = () => {
+    setValues(null);
+    setErrorMessage('');
+    setArrayRevision((revision) => revision + 1);
+  };
+
   return (
     <main className="array-page">
       <section className="array-page-header">
         <h1>Array Analyzer</h1>
         <p>整数配列の性質を静的アルゴリズムで解析します。</p>
-        <ArrayInputFormOutline onSubmit={handleSubmit} onInvalid={handleInvalid} />
+        <ArrayInputFormOutline
+          onSubmit={handleSubmit}
+          onInvalid={handleInvalid}
+          onSourceChange={handleSourceChange}
+        />
         {errorMessage && <div className="array-page-error">入力エラー: {errorMessage}</div>}
         {values && (
           <div className="array-loaded-summary">
