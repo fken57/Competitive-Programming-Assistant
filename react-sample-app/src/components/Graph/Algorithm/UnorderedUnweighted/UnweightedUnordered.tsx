@@ -9,6 +9,7 @@ import { ConnectedComponents } from './ConnectedComponents';
 import { UnionFind } from './UnionFind';
 import { LowLink } from './LowLink';
 import { LCA } from './LCA';
+import { isUndirectedTree } from '../../../../util/treeResultUtils';
 import './UnweightedUnordered.css'
 
 type UnweightedUnorderedAlgorithmProps = {
@@ -16,6 +17,8 @@ type UnweightedUnorderedAlgorithmProps = {
 };
 
 export function UnweightedUnorderedAlgorithm({ adjacentList }: UnweightedUnorderedAlgorithmProps) {
+    const canRunTreeAlgorithms = isUndirectedTree(adjacentList);
+
     return (
         <div className="unweighted-unordered-algorithm-container">
             <BFS adjacentList={adjacentList} />
@@ -25,8 +28,8 @@ export function UnweightedUnorderedAlgorithm({ adjacentList }: UnweightedUnorder
             <LowLink adjacentList={adjacentList} />
             <IsBinaryTree adjacentList={adjacentList} />
             <IsTree adjacentList={adjacentList} />
-            <UnweightedTreeDistance adjacentList={adjacentList} />
-            <LCA adjacentList={adjacentList} />
+            {canRunTreeAlgorithms && <UnweightedTreeDistance adjacentList={adjacentList} />}
+            {canRunTreeAlgorithms && <LCA adjacentList={adjacentList} />}
         </div>
     );
 }
