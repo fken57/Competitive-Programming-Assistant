@@ -77,6 +77,8 @@ func main() {
 	g.POST("/graphs/unweighted/unordered/unionfind", noCostGraphHandler.ExecuteUnionFind)
 	g.POST("/graphs/unweighted/unordered/lowlink", noCostGraphHandler.GetLowLink)
 	g.POST("/graphs/unweighted/unordered/lca", noCostGraphHandler.GetLCA)
+	g.POST("/graphs/unweighted/unordered/analyze", noCostGraphHandler.AnalyzeUnorderedStatic)
+	g.POST("/graphs/unweighted/ordered/analyze", noCostGraphHandler.AnalyzeOrderedStatic)
 
 	costGraphRepository := costgraphrepo.NewCostGraphFakeRepository(nil)
 	costGraphUseCase := costgraphusecase.NewCostGraphUseCase(costGraphRepository)
@@ -85,6 +87,7 @@ func main() {
 	g.POST("/graphs/weighted/ordered/dijkstra", costGraphHandler.ExecuteDijkstra)
 	g.POST("/graphs/weighted/unordered/prim", costGraphHandler.ExecutePrim)
 	g.POST("/graphs/weighted/unordered/treediameter", costGraphHandler.GetTreeDiameter)
+	g.POST("/graphs/weighted/unordered/analyze", costGraphHandler.AnalyzeUnorderedStatic)
 
 	arrayUseCase := arrayusecase.NewArrayUseCase()
 	arrayHandler := arrayhandler.NewArrayHandler(arrayUseCase)
@@ -97,6 +100,7 @@ func main() {
 	g.POST("/array/next_greater_to_right_strict", arrayHandler.NextGreaterToRightStrict)
 	g.POST("/array/next_smaller_to_right_strict", arrayHandler.NextSmallerToRightStrict)
 	g.POST("/array/longest_distinct_subarray", arrayHandler.LongestDistinctSubarray)
+	g.POST("/array/static/analyze", arrayHandler.AnalyzeStatic)
 
 	g.POST("/users/create", userAuthHandler.Register)
 
