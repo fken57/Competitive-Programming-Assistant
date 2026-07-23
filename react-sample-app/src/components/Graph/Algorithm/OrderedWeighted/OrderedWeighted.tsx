@@ -3,10 +3,11 @@ import { Dijkstra } from './Dijkstra';
 import { Prim } from './Prim';
 import { WeightedTreeDiameter } from './WeightedTreeDiameter';
 import { isUndirectedTree } from '../../../../util/treeResultUtils';
+import { WeightedEdge } from '../../../../util/CostGraphSendApis';
 import '../OrderedUnweighted/UnweightedOrdered.css'; // Reuse CSS
 
 type OrderedWeightedAlgorithmProps = {
-    adjacentList: Array<Array<{ to: number; weight?: number }>>;
+    adjacentList: WeightedEdge[][];
     graphType: string;
 };
 
