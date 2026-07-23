@@ -16,9 +16,11 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	//"github.com/jmoiron/sqlx"
 
+	arrayhandler "backend/internal/handler/array"
 	graphhandler "backend/internal/handler/unweightedgraph"
 	userhandler "backend/internal/handler/user"
 	costgraphhandler "backend/internal/handler/weightedgraph"
+	arrayusecase "backend/internal/usecase/array"
 	graphusecase "backend/internal/usecase/unweightedgraph"
 	userusecase "backend/internal/usecase/userusecase"
 	costgraphusecase "backend/internal/usecase/weightedgraph"
@@ -83,6 +85,18 @@ func main() {
 	g.POST("/graphs/weighted/ordered/dijkstra", costGraphHandler.ExecuteDijkstra)
 	g.POST("/graphs/weighted/unordered/prim", costGraphHandler.ExecutePrim)
 	g.POST("/graphs/weighted/unordered/treediameter", costGraphHandler.GetTreeDiameter)
+
+	arrayUseCase := arrayusecase.NewArrayUseCase()
+	arrayHandler := arrayhandler.NewArrayHandler(arrayUseCase)
+
+	g.POST("/array/build_prefix_sum", arrayHandler.BuildPrefixSum)
+	g.POST("/array/compress_values", arrayHandler.CompressValues)
+	g.POST("/array/count_inversions", arrayHandler.CountInversions)
+	g.POST("/array/static_mex", arrayHandler.StaticMex)
+	g.POST("/array/run_length_encoding", arrayHandler.RunLengthEncoding)
+	g.POST("/array/next_greater_to_right_strict", arrayHandler.NextGreaterToRightStrict)
+	g.POST("/array/next_smaller_to_right_strict", arrayHandler.NextSmallerToRightStrict)
+	g.POST("/array/longest_distinct_subarray", arrayHandler.LongestDistinctSubarray)
 
 	g.POST("/users/create", userAuthHandler.Register)
 
