@@ -3,6 +3,7 @@ import { getApiErrorMessage } from './apiResponseUtils';
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/apis';
 
 export const ARRAY_ENDPOINTS = {
+  ANALYZE_STATIC: '/array/static/analyze',
   BUILD_PREFIX_SUM: '/array/build_prefix_sum',
   COMPRESS_VALUES: '/array/compress_values',
   COUNT_INVERSIONS: '/array/count_inversions',
@@ -39,7 +40,16 @@ export type ArrayApiResponse = {
   values?: number[];
 };
 
-export async function postArray<TResponse extends ArrayApiResponse = ArrayApiResponse>(
+export type StaticAnalysisResponse = {
+  results: Array<{
+    id: string;
+    status: 'success' | 'skipped' | 'error';
+    data?: ArrayApiResponse;
+    reason?: string;
+  }>;
+};
+
+export async function postArray<TResponse = ArrayApiResponse>(
   endpoint: ArrayEndpoint,
   payload: ArrayRequest,
 ): Promise<TResponse> {
@@ -55,4 +65,11 @@ export async function postArray<TResponse extends ArrayApiResponse = ArrayApiRes
     throw new Error(await getApiErrorMessage(response));
   }
   return response.json();
+}
+
+export async function postArrayStaticAnalysis(values: number[]): Promise<StaticAnalysisResponse> {
+  return postArray<StaticAnalysisResponse>(
+    ARRAY_ENDPOINTS.ANALYZE_STATIC,
+    { values },
+  );
 }

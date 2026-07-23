@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { ArrayInputFormOutline } from '../components/Array/ArrayInputFormOutline';
 import { ArrayAlgorithmFormOutline } from '../components/Array/ArrayAlgorithmFormOutline';
 import './Array.css';
+import { AnalysisViewMode, AnalysisViewToggle } from '../components/common/AnalysisViewToggle';
+import { StaticArrayAnalysisList } from '../components/Array/Algorithm/Static/StaticArrayAnalysisList';
 
 const ArrayPage: React.FC = () => {
   const [values, setValues] = useState<number[] | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [arrayRevision, setArrayRevision] = useState(0);
+  const [analysisViewMode, setAnalysisViewMode] = useState<AnalysisViewMode>('container');
 
   const handleSubmit = (nextValues: number[]) => {
     setValues(nextValues);
@@ -46,11 +49,18 @@ const ArrayPage: React.FC = () => {
       </section>
 
       {values && (
-        <ArrayAlgorithmFormOutline
-          key={arrayRevision}
-          category="static"
-          values={values}
-        />
+        <>
+          <AnalysisViewToggle mode={analysisViewMode} onChange={setAnalysisViewMode} />
+          {analysisViewMode === 'container' ? (
+            <ArrayAlgorithmFormOutline
+              key={arrayRevision}
+              category="static"
+              values={values}
+            />
+          ) : (
+            <StaticArrayAnalysisList key={arrayRevision} values={values} />
+          )}
+        </>
       )}
     </main>
   );
