@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import '../UnorderedUnweighted/IsBinaryTree.css'; // Reuse CSS layout
 import { MyButton } from '../../../common/button/Button';
 import { useWeightedGraphApi } from '../../../../hooks/Graph/useWeightedGraphApi';
@@ -13,12 +13,19 @@ type OrderedWeightedAlgorithmProps = {
 
 export function Dijkstra({ adjacentList, graphType }: OrderedWeightedAlgorithmProps) {
     const { postGraphData, loading, error, data } = useWeightedGraphApi();
+    const [validationError, setValidationError] = useState<string | null>(null);
 
     const resultVisualData = useMemo(() => {
         return buildDijkstraVisualGraphData(adjacentList, data, graphType === 'directed' ? 'directed' : 'undirected');
     }, [data, adjacentList, graphType]);
 
     const HandleSubmit = async () => {
+        if (adjacentList.some((neighbors) => neighbors.some((edge) => edge.weight < 0))) {
+            setValidationError('Dijkstra法では負の重みを含むグラフを実行できません。');
+            return;
+        }
+
+        setValidationError(null);
         const payload = {
             vertex_count: adjacentList.length,
             neighbors: adjacentList,
@@ -49,9 +56,9 @@ export function Dijkstra({ adjacentList, graphType }: OrderedWeightedAlgorithmPr
                     </p>
                 )}
 
-                {error && (
+                {(validationError || error) && (
                     <div className="bfs-error-message">
-                        エラーが発生しました: {error.message}
+                        エラーが発生しました: {validationError || error?.message}
                     </div>
                 )}
                 
@@ -77,7 +84,7 @@ export function Dijkstra({ adjacentList, graphType }: OrderedWeightedAlgorithmPr
                         </div>
                     </div>
                 ) : (
-                    !loading && !error && <p className="bfs-placeholder-text">結果がここに表示されます</p>
+                    !loading && !validationError && !error && <p className="bfs-placeholder-text">結果がここに表示されます</p>
                 )}
             </div>
         </div>

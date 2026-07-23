@@ -29,6 +29,20 @@ func validateWeightedNeighborListRequest(req CostGraphNeighborListRequest) error
 	return nil
 }
 
+func validateDijkstraRequest(req CostGraphNeighborListRequest) error {
+	if err := validateWeightedNeighborListRequest(req); err != nil {
+		return err
+	}
+	for _, neighbors := range req.Neighbors {
+		for _, edge := range neighbors {
+			if edge.Weight < 0 {
+				return fmt.Errorf("Dijkstra does not support negative edge weights")
+			}
+		}
+	}
+	return nil
+}
+
 func NewCostGraphHandler(usecase *graphusecase.CostGraphUseCase) *CostGraphHandler {
 	return &CostGraphHandler{
 		costGraphUseCase: usecase,
@@ -40,7 +54,7 @@ func (h *CostGraphHandler) ExecuteDijkstra(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
-	if err := validateWeightedNeighborListRequest(req); err != nil {
+	if err := validateDijkstraRequest(req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 

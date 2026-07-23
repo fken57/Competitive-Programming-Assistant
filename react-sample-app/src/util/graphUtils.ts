@@ -26,6 +26,19 @@ export type VisualGraphData = {
     edges: VisualEdge[];
 };
 
+const parseIntegerToken = (token: string, fieldName: string): number => {
+  if (!/^-?\d+$/.test(token)) {
+    throw new Error(`${fieldName}は整数で入力してください。`);
+  }
+
+  const value = Number(token);
+  if (!Number.isSafeInteger(value)) {
+    throw new Error(`${fieldName}は安全な整数の範囲で入力してください。`);
+  }
+
+  return value;
+};
+
 /**
  * グラフの入力文字列をパースして、N(頂点数)、M(辺数)、およびエッジのリスト(1-indexedのまま)を取得します。
  * 無向グラフの場合は、逆方向のエッジもリストに追加します。
@@ -37,12 +50,15 @@ export const parseUnweightedEdges = (input: string, isDirected: boolean = false)
     throw new Error("入力が空です。N M とエッジ情報を入力してください。");
   }
 
-  const [N_str, M_str] = lines[0].split(/\s+/);
-  const N = parseInt(N_str, 10);
-  const M = parseInt(M_str, 10);
-
-  if (isNaN(N) || isNaN(M)) {
-    throw new Error("1行目のフォーマットが不正です。頂点数N と 辺数M をスペース区切りで入力してください。");
+  const headerParts = lines[0].split(/\s+/);
+  if (headerParts.length !== 2) {
+    throw new Error("1行目は頂点数Nと辺数Mの2項目で入力してください。");
+  }
+  const [N_str, M_str] = headerParts;
+  const N = parseIntegerToken(N_str, '頂点数N');
+  const M = parseIntegerToken(M_str, '辺数M');
+  if (N <= 0 || M < 0) {
+    throw new Error("頂点数Nは正、辺数Mは0以上の整数で入力してください。");
   }
 
   if (lines.length - 1 !== M) {
@@ -52,15 +68,11 @@ export const parseUnweightedEdges = (input: string, isDirected: boolean = false)
   const edges: UnweightedEdge[] = [];
   for (let i = 1; i < lines.length; i++) {
     const parts = lines[i].split(/\s+/);
-    if (parts.length < 2) {
-      throw new Error(`${i + 1}行目の入力が不正です。2つの頂点 u v を入力してください。`);
+    if (parts.length !== 2) {
+      throw new Error(`${i + 1}行目は2つの整数 u v を入力してください。`);
     }
-    const u = parseInt(parts[0], 10);
-    const v = parseInt(parts[1], 10);
-    
-    if (isNaN(u) || isNaN(v)) {
-      throw new Error(`${i + 1}行目の頂点指定が数値ではありません。`);
-    }
+    const u = parseIntegerToken(parts[0], `${i + 1}行目の頂点u`);
+    const v = parseIntegerToken(parts[1], `${i + 1}行目の頂点v`);
     if (u < 1 || u > N || v < 1 || v > N) {
       throw new Error(`${i + 1}行目の頂点が範囲外です。1 から ${N} の間で指定してください。`);
     }
@@ -85,12 +97,15 @@ export const parseWeightedEdges = (input: string, isDirected: boolean = false): 
     throw new Error("入力が空です。N M とエッジ情報を入力してください。");
   }
 
-  const [N_str, M_str] = lines[0].split(/\s+/);
-  const N = parseInt(N_str, 10);
-  const M = parseInt(M_str, 10);
-
-  if (isNaN(N) || isNaN(M)) {
-    throw new Error("1行目のフォーマットが不正です。頂点数N と 辺数M をスペース区切りで入力してください。");
+  const headerParts = lines[0].split(/\s+/);
+  if (headerParts.length !== 2) {
+    throw new Error("1行目は頂点数Nと辺数Mの2項目で入力してください。");
+  }
+  const [N_str, M_str] = headerParts;
+  const N = parseIntegerToken(N_str, '頂点数N');
+  const M = parseIntegerToken(M_str, '辺数M');
+  if (N <= 0 || M < 0) {
+    throw new Error("頂点数Nは正、辺数Mは0以上の整数で入力してください。");
   }
 
   if (lines.length - 1 !== M) {
@@ -100,16 +115,12 @@ export const parseWeightedEdges = (input: string, isDirected: boolean = false): 
   const edges: WeightedEdge[] = [];
   for (let i = 1; i < lines.length; i++) {
     const parts = lines[i].split(/\s+/);
-    if (parts.length < 3) {
-      throw new Error(`${i + 1}行目の入力が不正です。2つの頂点 u v と重み w を入力してください。`);
+    if (parts.length !== 3) {
+      throw new Error(`${i + 1}行目は3つの整数 u v w を入力してください。`);
     }
-    const u = parseInt(parts[0], 10);
-    const v = parseInt(parts[1], 10);
-    const w = parseInt(parts[2], 10);
-    
-    if (isNaN(u) || isNaN(v) || isNaN(w)) {
-      throw new Error(`${i + 1}行目の指定が数値ではありません。`);
-    }
+    const u = parseIntegerToken(parts[0], `${i + 1}行目の頂点u`);
+    const v = parseIntegerToken(parts[1], `${i + 1}行目の頂点v`);
+    const w = parseIntegerToken(parts[2], `${i + 1}行目の重みw`);
     if (u < 1 || u > N || v < 1 || v > N) {
       throw new Error(`${i + 1}行目の頂点が範囲外です。1 から ${N} の間で指定してください。`);
     }
