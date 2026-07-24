@@ -15,6 +15,16 @@ function Header() {
       <header className="header-container">
         <div className="header-alignment">
           <Link className="header-title" to="/">Competitive Programming Assistant</Link>
+          <SegmentedNavigation
+            className="header-navigation"
+            label="ページ切替"
+            options={[
+              { to: '/', label: 'Home', end: true },
+              { to: '/graph', label: 'Graph' },
+              { to: '/array', label: 'Array' },
+              { to: '/random-gen', label: 'Random Gen' },
+            ]}
+          />
           <div className="header-button-alignment">
             {loading ? (
               <span className="header-auth-state">認証確認中…</span>
@@ -31,16 +41,6 @@ function Header() {
             )}
           </div>
         </div>
-        <SegmentedNavigation
-          className="header-navigation"
-          label="ページ切替"
-          options={[
-            { to: '/', label: 'Home', end: true },
-            { to: '/graph', label: 'Graph' },
-            { to: '/array', label: 'Array' },
-            { to: '/random-gen', label: 'Random Gen' },
-          ]}
-        />
       </header>
       {dialogMode && (
         <AuthDialog

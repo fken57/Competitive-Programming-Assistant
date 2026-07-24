@@ -59,3 +59,14 @@ test('offers links to every main page and the title returns home', () => {
   expect(screen.getByRole('link', { name: 'Array' })).toHaveAttribute('href', '/array');
   expect(screen.getByRole('link', { name: 'Random Gen' })).toHaveAttribute('href', '/random-gen');
 });
+
+test('places page navigation between the title and authentication controls', () => {
+  render(<Header />);
+
+  const title = screen.getByRole('link', { name: 'Competitive Programming Assistant' });
+  const navigation = screen.getByRole('navigation', { name: 'ページ切替' });
+  const register = screen.getByRole('button', { name: '新規登録' });
+
+  expect(title.compareDocumentPosition(navigation) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(navigation.compareDocumentPosition(register) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+});
