@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import './IsBinaryTree.css';
+import './GraphQueryForm.css';
 import { MyButton } from '../../../common/button/Button';
+import { LabeledField } from '../../../common/LabeledField';
 import { useUnweightedGraphApi } from '../../../../hooks/Graph/useUnweightedGraphApi';
 import { GRAPH_ENDPOINTS } from '../../../../util/NoCostGraphSendApis';
 import { GraphVisualizer } from '../../GraphVisualizer';
@@ -42,8 +44,45 @@ export function LCA({ adjacentList }: Props) {
 
     return (
         <div className="is-binary-tree-algorithm-container">
-            <div className="form-outline-input-area"><input value={root} onChange={(event) => setRoot(event.target.value)} placeholder="根の頂点 (例: 1)" /><textarea value={queryText} onChange={(event) => setQueryText(event.target.value)} placeholder={'クエリを1行ずつ入力\n例: 2 3'} /></div>
-            <div className="button-container"><MyButton color="blue" onClick={handleSubmit}>{loading ? '実行中...' : 'LCAを計算'}</MyButton></div>
+            <div className="graph-query-form">
+                <div className="graph-query-form-grid">
+                    <LabeledField
+                        label="LCAの根の頂点"
+                        hint={`1〜${adjacentList.length}の頂点番号を入力してください。`}
+                    >
+                        <input
+                            type="number"
+                            min={1}
+                            max={adjacentList.length}
+                            value={root}
+                            onChange={(event) => setRoot(event.target.value)}
+                        />
+                    </LabeledField>
+                    <LabeledField
+                        className="lca-query-field"
+                        label="LCAクエリ"
+                        hint="1行につき「u v」の形式で入力してください。"
+                    >
+                        <textarea
+                            rows={5}
+                            value={queryText}
+                            onChange={(event) => setQueryText(event.target.value)}
+                            placeholder={'2 3\n4 5'}
+                        />
+                    </LabeledField>
+                </div>
+                {inputError && (
+                    <p className="graph-query-error" role="alert">エラー: {inputError}</p>
+                )}
+                <button
+                    className="graph-query-primary"
+                    type="button"
+                    disabled={loading}
+                    onClick={handleSubmit}
+                >
+                    {loading ? '実行中...' : 'LCAを計算'}
+                </button>
+            </div>
             <div className="result-display-area">
                 {resultVisualData && (
                     <>
@@ -82,7 +121,7 @@ export function LCA({ adjacentList }: Props) {
                 )}
                 <h3 className="bfs-result-title">実行結果</h3>
                 {data?.lcas?.map((vertex: number, index: number) => <p className="bfs-result-text" key={index}>クエリ {index + 1}: 頂点 {vertex + 1}</p>)}
-                {(inputError || error) && <div className="bfs-error-message">エラーが発生しました: {inputError || error?.message}</div>}
+                {error && <div className="bfs-error-message">エラーが発生しました: {error.message}</div>}
                 {!loading && !error && !inputError && !data && <p className="bfs-placeholder-text">無向木に対する最小共通祖先を計算します</p>}
             </div>
         </div>

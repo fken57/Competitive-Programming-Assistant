@@ -117,28 +117,12 @@
   gap: 14px;
 }
 
-.random-gen-field {
-  display: grid;
-  gap: 5px;
-  flex: 1 1 180px;
-  font-weight: 700;
-}
-
-.random-gen-field input,
-.random-gen-field select {
-  min-width: 0;
-  padding: 9px;
-  border: 1px solid #cbd5e1;
-  border-radius: 7px;
-  font: inherit;
-}
-
 .random-gen-options,
 .random-gen-seed-row {
   margin-top: 16px;
 }
 
-.random-gen-weight-options .random-gen-field {
+.random-gen-weight-options .labeled-field {
   max-width: 220px;
 }
 

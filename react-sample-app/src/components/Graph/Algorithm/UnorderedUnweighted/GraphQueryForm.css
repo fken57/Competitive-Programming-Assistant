@@ -1,0 +1,49 @@
+.graph-query-form {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid #dbe4ef;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.graph-query-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.graph-query-form .lca-query-field {
+  grid-column: 1 / -1;
+}
+
+.graph-query-primary {
+  width: fit-content;
+  padding: 10px 16px;
+  border: 1px solid #2563eb;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.graph-query-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.graph-query-primary:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.graph-query-error {
+  margin: 0;
+  padding: 10px;
+  border-radius: 7px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-weight: 700;
+}

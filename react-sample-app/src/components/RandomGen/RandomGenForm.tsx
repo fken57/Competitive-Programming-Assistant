@@ -1,5 +1,6 @@
 import React, { FormEvent, useState } from 'react';
 import { GenerationRecipe, StructureType } from '../../types/RandomGen';
+import { LabeledField } from '../common/LabeledField';
 import { SegmentedControl } from '../common/SegmentedControl';
 import { ToggleSwitch } from '../common/ToggleSwitch';
 import {
@@ -43,10 +44,9 @@ function NumberInput({
   onChange: (value: number) => void;
 }) {
   return (
-    <label className="random-gen-field">
-      <span>{label}</span>
+    <LabeledField label={label}>
       <input type="number" value={value} onChange={(event) => onChange(Number(event.target.value))} />
-    </label>
+    </LabeledField>
   );
 }
 
@@ -179,8 +179,7 @@ export function RandomGenForm({ loading, onGenerate }: Props) {
       />
 
       <div className="random-gen-form-grid">
-        <label className="random-gen-field">
-          <span>ケース種別</span>
+        <LabeledField label="ケース種別">
           <select
             value={caseType}
             onChange={(event) => setCaseTypes((current) => ({
@@ -192,7 +191,7 @@ export function RandomGenForm({ loading, onGenerate }: Props) {
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}
           </select>
-        </label>
+        </LabeledField>
         <NumberInput label="N" value={n} onChange={setN} />
         {structureType === 'graph' && <NumberInput label="M" value={m} onChange={setM} />}
         {structureType === 'array' && (
@@ -202,13 +201,12 @@ export function RandomGenForm({ loading, onGenerate }: Props) {
           </>
         )}
         {structureType !== 'array' && (
-          <label className="random-gen-field">
-            <span>頂点番号</span>
+          <LabeledField label="頂点番号">
             <select value={indexBase} onChange={(event) => setIndexBase(Number(event.target.value) as 0 | 1)}>
               <option value={1}>1-based</option>
               <option value={0}>0-based</option>
             </select>
-          </label>
+          </LabeledField>
         )}
       </div>
 
@@ -238,10 +236,9 @@ export function RandomGenForm({ loading, onGenerate }: Props) {
       )}
 
       <div className="random-gen-seed-row">
-        <label className="random-gen-field">
-          <span>seed</span>
+        <LabeledField label="seed">
           <input value={seed} onChange={(event) => setSeed(event.target.value)} />
-        </label>
+        </LabeledField>
         <button type="button" onClick={() => setSeed(createRandomSeed())}>seedをランダム生成</button>
       </div>
 
