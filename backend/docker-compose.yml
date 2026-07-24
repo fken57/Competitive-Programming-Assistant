@@ -3,14 +3,18 @@ services:
     image: postgres:15-alpine
     restart: always
     environment:
-      POSTGRES_USER: ken57
-      POSTGRES_PASSWORD: post1810
-      POSTGRES_DB: authdb
+      POSTGRES_USER: ${POSTGRES_USER:-cpa_dev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in backend/.env}
+      POSTGRES_DB: ${POSTGRES_DB:-cpa_dev}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - cpa_postgres_data:/var/lib/postgresql/data # 💡 「./」を無くして、ボリューム名にする
+      - cpa_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cpa_dev} -d ${POSTGRES_DB:-cpa_dev}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
-# 💡 一番下に、Dockerに管理を任せるボリュームの定義を追加する
 volumes:
   cpa_postgres_data:

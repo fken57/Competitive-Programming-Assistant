@@ -1,25 +1,25 @@
 FROM golang:1.26-alpine AS builder
 
-# ワーキングディレクトリの設定
 WORKDIR /app
 
-# 依存関係を先にコピーしてキャッシュを利用する
 COPY ./go.mod ./go.sum ./
 RUN go mod download
 
-# ソースコードをコピーしてビルド
 COPY . .
-RUN go build -o main .
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/cpa .
 
-# --- Run Stage ---
-FROM alpine:latest
+FROM alpine:3.23
 
+RUN apk add --no-cache ca-certificates tzdata \
+    && addgroup -S cpa \
+    && adduser -S -G cpa cpa
 WORKDIR /app
+COPY --from=builder /out/cpa /app/cpa
 
-# ビルドしたバイナリだけをコピー
-COPY --from=builder /app/main .
-# もし .env を使うならコピー（ただし本番では環境変数設定を推奨）
-# COPY --from=builder /app/.env . 
+ENV PORT=8080
+USER cpa
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD wget -qO- http://127.0.0.1:8080/healthz >/dev/null || exit 1
 
-# 実行
-CMD ["./main"]
+CMD ["/app/cpa"]

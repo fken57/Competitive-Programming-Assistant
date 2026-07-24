@@ -4,9 +4,12 @@ import (
 	randomgendomain "backend/internal/domain/randomgen"
 	"backend/internal/domain/user"
 	"context"
+	"errors"
 	"log"
 	"net/http"
-	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -32,23 +35,31 @@ import (
 )
 
 func main() {
+	config, err := loadConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+	appContext, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
 	var userRepository user.UserRepository
 	var sessionRepository user.SessionRepository
 	var userDB *sqlx.DB
-	databaseURL := os.Getenv("DATABASE_URL")
-	if databaseURL == "" {
+	if config.DatabaseURL == "" {
 		log.Print("DATABASE_URL is not set; authentication uses in-memory storage")
 		memoryRepository := userrepo.NewMemoryAuthRepository()
 		userRepository = memoryRepository
 		sessionRepository = memoryRepository
 	} else {
-		var err error
-		userDB, err = sqlx.Connect("pgx", databaseURL)
+		userDB, err = sqlx.Connect("pgx", config.DatabaseURL)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer userDB.Close()
-		if err := userrepo.EnsureAuthSchema(context.Background(), userDB); err != nil {
+		userDB.SetMaxOpenConns(10)
+		userDB.SetMaxIdleConns(5)
+		userDB.SetConnMaxLifetime(30 * time.Minute)
+		if err := runMigrations(context.Background(), userDB); err != nil {
 			log.Fatal(err)
 		}
 		userRepository = userrepo.NewUserRepository(userDB)
@@ -58,7 +69,7 @@ func main() {
 	userUsecase := userusecase.NewUserUsecase(userRepository, sessionRepository)
 	userAuthHandler := userhandler.NewUserAuthHandler(
 		userUsecase,
-		os.Getenv("APP_ENV") == "production",
+		config.AppEnvironment == productionEnvironment,
 	)
 
 	noCostGraphRepository := graphrepo.NewGraphFakeRepository(nil)
@@ -66,15 +77,20 @@ func main() {
 	noCostGraphHandler := graphhandler.NewNoCostGraphHandler(noCostGraphUseCase)
 
 	e := echo.New()
+	e.Debug = config.Debug
+	e.HideBanner = config.AppEnvironment == productionEnvironment
 
 	e.Use(middleware.Logger()) // ➔ 誰がどのURLにアクセスして、何番のエラーになったかを全て記録する
 	e.Use(middleware.Recover())
+	e.Use(middleware.BodyLimit("12M"))
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{environmentOrDefault("FRONTEND_ORIGIN", "http://localhost:3000")},
+		AllowOrigins:     []string{config.FrontendOrigin},
 		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPatch, http.MethodDelete, http.MethodOptions},
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 		AllowCredentials: true,
 	}))
+
+	e.GET("/healthz", healthHandler(userDB))
 
 	g := e.Group("/apis")
 
@@ -122,11 +138,9 @@ func main() {
 	if userDB == nil {
 		savedCaseRepository = randomgenrepo.NewMemorySavedCaseRepository()
 	} else {
-		if err := randomgenrepo.EnsureSavedCaseSchema(context.Background(), userDB); err != nil {
-			log.Fatal(err)
-		}
 		savedCaseRepository = randomgenrepo.NewPostgresSavedCaseRepository(userDB)
 	}
+	startCleanupLoop(appContext, sessionRepository, savedCaseRepository)
 	randomGenUsecase := randomgenusecase.NewRandomGenUsecase(savedCaseRepository)
 	randomGenHandler := randomgenhandler.NewRandomGenHandler(randomGenUsecase)
 	g.POST("/random-gen/generate", randomGenHandler.Generate)
@@ -147,12 +161,23 @@ func main() {
 		return c.String(http.StatusOK, "Hello, World.\n")
 	})
 
-	e.Logger.Fatal(e.Start("0.0.0.0:8080"))
-}
+	registerStaticFrontend(e, config.StaticDir)
 
-func environmentOrDefault(name, fallback string) string {
-	if value := os.Getenv(name); value != "" {
-		return value
+	serverErrors := make(chan error, 1)
+	go func() {
+		serverErrors <- e.Start("0.0.0.0:" + config.Port)
+	}()
+
+	select {
+	case serverError := <-serverErrors:
+		if serverError != nil && !errors.Is(serverError, http.ErrServerClosed) {
+			log.Fatal(serverError)
+		}
+	case <-appContext.Done():
+		shutdownContext, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := e.Shutdown(shutdownContext); err != nil {
+			log.Printf("graceful shutdown failed: %v", err)
+		}
 	}
-	return fallback
 }
