@@ -86,6 +86,7 @@ func normalizedMySQLConfig(config mysql.Config) *mysql.Config {
 	config.ParseTime = true
 	config.Loc = time.UTC
 	config.MultiStatements = false
+	config.AllowNativePasswords = true
 	config.Collation = "utf8mb4_unicode_ci"
 	config.Timeout = 5 * time.Second
 	config.ReadTimeout = 10 * time.Second

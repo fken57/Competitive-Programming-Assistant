@@ -59,7 +59,8 @@ func assertNormalizedDSN(
 		config.DBName != databaseName || config.TLSConfig != tlsConfig {
 		t.Fatalf("unexpected DSN config: %#v", config)
 	}
-	if !config.ParseTime || config.Loc != time.UTC || config.MultiStatements {
+	if !config.ParseTime || config.Loc != time.UTC || config.MultiStatements ||
+		!config.AllowNativePasswords {
 		t.Fatalf("unsafe time or multi-statement settings: %#v", config)
 	}
 	if !strings.Contains(dsn, "charset=utf8mb4") || config.Collation != "utf8mb4_unicode_ci" {

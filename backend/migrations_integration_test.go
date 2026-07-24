@@ -14,7 +14,7 @@ func TestMariaDBMigrationsIntegration(t *testing.T) {
 		t.Skip("MARIADB_TEST_DSN is not set")
 	}
 
-	db, err := sqlx.Connect("mysql", dsn)
+	db, err := openDatabase(appConfig{DatabaseURL: dsn})
 	if err != nil {
 		t.Fatalf("connect to MariaDB: %v", err)
 	}
