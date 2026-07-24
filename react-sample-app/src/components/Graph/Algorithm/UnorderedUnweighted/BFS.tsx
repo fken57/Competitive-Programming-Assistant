@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import './BFS.css';
 import './GraphQueryForm.css';
 import { LabeledField } from '../../../common/LabeledField';
+import { MyButton } from '../../../common/button/Button';
 import { useUnweightedGraphApi } from '../../../../hooks/Graph/useUnweightedGraphApi';
 import { GRAPH_ENDPOINTS } from '../../../../util/NoCostGraphSendApis';
 import { GraphVisualizer } from '../../GraphVisualizer';
@@ -65,14 +66,11 @@ export function BFS({ adjacentList, graphType = 'undirected' }: UnweightedUnorde
                 {validationError && (
                     <p className="graph-query-error" role="alert">エラー: {validationError}</p>
                 )}
-                <button
-                    className="graph-query-primary"
-                    type="button"
-                    disabled={loading}
-                    onClick={HandleSubmit}
-                >
-                    {loading ? '実行中...' : 'BFSを実行'}
-                </button>
+                <div className="button-container">
+                    <MyButton color="blue" onClick={HandleSubmit}>
+                        {loading ? '実行中...' : 'BFSを実行'}
+                    </MyButton>
+                </div>
             </div>
 
             <div className="result-display-area">

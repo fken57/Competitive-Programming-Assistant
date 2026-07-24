@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import './IsBinaryTree.css';
 import './GraphQueryForm.css';
 import { LabeledField } from '../../../common/LabeledField';
+import { MyButton } from '../../../common/button/Button';
 import { useUnweightedGraphApi } from '../../../../hooks/Graph/useUnweightedGraphApi';
 import { GRAPH_ENDPOINTS } from '../../../../util/NoCostGraphSendApis';
 import { GraphVisualizer } from '../../GraphVisualizer';
@@ -60,14 +61,11 @@ export function DFS({ adjacentList, graphType = 'undirected' }: DFSProps) {
                 {validationError && (
                     <p className="graph-query-error" role="alert">エラー: {validationError}</p>
                 )}
-                <button
-                    className="graph-query-primary"
-                    type="button"
-                    disabled={loading}
-                    onClick={handleSubmit}
-                >
-                    {loading ? '実行中...' : `DFSを実行（${graphType === 'directed' ? '有向' : '無向'}）`}
-                </button>
+                <div className="button-container">
+                    <MyButton color="blue" onClick={handleSubmit}>
+                        {loading ? '実行中...' : `DFSを実行（${graphType === 'directed' ? '有向' : '無向'}）`}
+                    </MyButton>
+                </div>
             </div>
             <div className="result-display-area">
                 {resultVisualData && (

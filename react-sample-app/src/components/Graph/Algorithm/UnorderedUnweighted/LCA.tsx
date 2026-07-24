@@ -74,14 +74,11 @@ export function LCA({ adjacentList }: Props) {
                 {inputError && (
                     <p className="graph-query-error" role="alert">エラー: {inputError}</p>
                 )}
-                <button
-                    className="graph-query-primary"
-                    type="button"
-                    disabled={loading}
-                    onClick={handleSubmit}
-                >
-                    {loading ? '実行中...' : 'LCAを計算'}
-                </button>
+                <div className="button-container">
+                    <MyButton color="blue" onClick={handleSubmit}>
+                        {loading ? '実行中...' : 'LCAを計算'}
+                    </MyButton>
+                </div>
             </div>
             <div className="result-display-area">
                 {resultVisualData && (

@@ -9,7 +9,7 @@
 
 .header-alignment{
     display:grid;
-    grid-template-columns: minmax(260px, 1fr) auto minmax(220px, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     gap: 20px;
     align-items:center;
 }
@@ -21,7 +21,8 @@
     font-family: Noto Serif JP, sans-serif;
     font-weight: 700;
     text-decoration: none;
-    white-space: nowrap;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .header-button-alignment{
@@ -54,7 +55,7 @@
     color: #0f172a;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1400px) {
     .header-alignment {
         grid-template-columns: 1fr;
         justify-items: stretch;
@@ -69,7 +70,6 @@
 @media (max-width: 760px) {
     .header-title {
         font-size: 24px;
-        white-space: normal;
     }
 
     .header-navigation {
