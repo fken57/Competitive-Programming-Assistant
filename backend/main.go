@@ -20,8 +20,6 @@ import (
 	userrepo "backend/internal/infrastructure/user"
 	costgraphrepo "backend/internal/infrastructure/weightedgraph"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
-
 	arrayhandler "backend/internal/handler/array"
 	randomgenhandler "backend/internal/handler/randomgen"
 	graphhandler "backend/internal/handler/unweightedgraph"
@@ -45,16 +43,16 @@ func main() {
 	var userRepository user.UserRepository
 	var sessionRepository user.SessionRepository
 	var userDB *sqlx.DB
-	if config.DatabaseURL == "" {
-		log.Print("DATABASE_URL is not set; authentication uses in-memory storage")
+	userDB, err = openDatabase(config)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if userDB == nil {
+		log.Print("MariaDB is not configured; authentication uses in-memory storage")
 		memoryRepository := userrepo.NewMemoryAuthRepository()
 		userRepository = memoryRepository
 		sessionRepository = memoryRepository
 	} else {
-		userDB, err = sqlx.Connect("pgx", config.DatabaseURL)
-		if err != nil {
-			log.Fatal(err)
-		}
 		defer userDB.Close()
 		userDB.SetMaxOpenConns(10)
 		userDB.SetMaxIdleConns(5)
@@ -138,7 +136,7 @@ func main() {
 	if userDB == nil {
 		savedCaseRepository = randomgenrepo.NewMemorySavedCaseRepository()
 	} else {
-		savedCaseRepository = randomgenrepo.NewPostgresSavedCaseRepository(userDB)
+		savedCaseRepository = randomgenrepo.NewMariaDBSavedCaseRepository(userDB)
 	}
 	startCleanupLoop(appContext, sessionRepository, savedCaseRepository)
 	randomGenUsecase := randomgenusecase.NewRandomGenUsecase(savedCaseRepository)

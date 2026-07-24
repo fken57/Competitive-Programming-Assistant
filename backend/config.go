@@ -13,6 +13,12 @@ const productionEnvironment = "production"
 type appConfig struct {
 	AppEnvironment string
 	DatabaseURL    string
+	DatabaseHost   string
+	DatabasePort   string
+	DatabaseName   string
+	DatabaseUser   string
+	DatabasePass   string
+	DatabaseTLS    string
 	FrontendOrigin string
 	Port           string
 	StaticDir      string
@@ -23,9 +29,18 @@ func loadConfig() (appConfig, error) {
 	config := appConfig{
 		AppEnvironment: environmentOrDefault("APP_ENV", "development"),
 		DatabaseURL:    strings.TrimSpace(os.Getenv("DATABASE_URL")),
+		DatabaseHost:   firstEnvironment("MARIADB_HOST", "MYSQL_HOST", "DB_HOST"),
+		DatabasePort:   firstEnvironment("MARIADB_PORT", "MYSQL_PORT", "DB_PORT"),
+		DatabaseName:   firstEnvironment("MARIADB_DATABASE", "MYSQL_DATABASE", "DB_NAME"),
+		DatabaseUser:   firstEnvironment("MARIADB_USER", "MYSQL_USER", "DB_USER"),
+		DatabasePass:   firstEnvironment("MARIADB_PASSWORD", "MYSQL_PASSWORD", "DB_PASSWORD"),
+		DatabaseTLS:    firstEnvironment("MARIADB_TLS", "MYSQL_TLS", "DB_TLS"),
 		FrontendOrigin: strings.TrimSpace(os.Getenv("FRONTEND_ORIGIN")),
 		Port:           environmentOrDefault("PORT", "8080"),
 		StaticDir:      strings.TrimSpace(os.Getenv("STATIC_DIR")),
+	}
+	if config.DatabasePort == "" {
+		config.DatabasePort = "3306"
 	}
 	isProduction := config.AppEnvironment == productionEnvironment
 	config.Debug = !isProduction && strings.EqualFold(os.Getenv("DEBUG"), "true")
@@ -45,11 +60,24 @@ func loadConfig() (appConfig, error) {
 		return appConfig{}, fmt.Errorf("invalid FRONTEND_ORIGIN: %w", err)
 	}
 
-	if isProduction && config.DatabaseURL == "" {
-		return appConfig{}, fmt.Errorf("DATABASE_URL is required in production")
+	if config.DatabaseURL == "" && config.hasPartialDatabaseSettings() && !config.hasCompleteDatabaseSettings() {
+		return appConfig{}, fmt.Errorf("MariaDB settings require host, database, user, and password")
+	}
+	if isProduction && config.DatabaseURL == "" && !config.hasCompleteDatabaseSettings() {
+		return appConfig{}, fmt.Errorf("DATABASE_URL or complete MariaDB settings are required in production")
 	}
 
 	return config, nil
+}
+
+func (config appConfig) hasPartialDatabaseSettings() bool {
+	return config.DatabaseHost != "" || config.DatabaseName != "" ||
+		config.DatabaseUser != "" || config.DatabasePass != "" || config.DatabaseTLS != ""
+}
+
+func (config appConfig) hasCompleteDatabaseSettings() bool {
+	return config.DatabaseHost != "" && config.DatabaseName != "" &&
+		config.DatabaseUser != "" && config.DatabasePass != ""
 }
 
 func validateOrigin(value string) error {
@@ -74,4 +102,13 @@ func environmentOrDefault(name, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func firstEnvironment(names ...string) string {
+	for _, name := range names {
+		if value := strings.TrimSpace(os.Getenv(name)); value != "" {
+			return value
+		}
+	}
+	return ""
 }

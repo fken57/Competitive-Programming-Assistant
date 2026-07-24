@@ -133,17 +133,17 @@ func contains(values []string, target string) bool {
 	return false
 }
 
-type PostgresSavedCaseRepository struct {
+type MariaDBSavedCaseRepository struct {
 	db *sqlx.DB
 }
 
-var _ domain.SavedCaseRepository = (*PostgresSavedCaseRepository)(nil)
+var _ domain.SavedCaseRepository = (*MariaDBSavedCaseRepository)(nil)
 
-func NewPostgresSavedCaseRepository(db *sqlx.DB) *PostgresSavedCaseRepository {
-	return &PostgresSavedCaseRepository{db: db}
+func NewMariaDBSavedCaseRepository(db *sqlx.DB) *MariaDBSavedCaseRepository {
+	return &MariaDBSavedCaseRepository{db: db}
 }
 
-func (repository *PostgresSavedCaseRepository) SaveHistory(
+func (repository *MariaDBSavedCaseRepository) SaveHistory(
 	ctx context.Context,
 	history domain.GenerationHistory,
 ) error {
@@ -153,13 +153,13 @@ func (repository *PostgresSavedCaseRepository) SaveHistory(
 	}
 	_, err = repository.db.ExecContext(ctx, `INSERT INTO generation_histories
 		(id, user_id, created_at, expires_at, recipe_json, killed_flag)
-		VALUES ($1, $2, $3, $4, $5, $6)`,
+		VALUES (?, ?, ?, ?, ?, ?)`,
 		history.ID, history.UserID, history.CreatedAt, history.ExpiresAt, recipe, history.KilledFlag,
 	)
 	return err
 }
 
-func (repository *PostgresSavedCaseRepository) ListHistory(
+func (repository *MariaDBSavedCaseRepository) ListHistory(
 	ctx context.Context,
 	userID string,
 	now time.Time,
@@ -167,7 +167,7 @@ func (repository *PostgresSavedCaseRepository) ListHistory(
 	rows := []historyRow{}
 	err := repository.db.SelectContext(ctx, &rows, `SELECT id, user_id, created_at, expires_at,
 		recipe_json, killed_flag FROM generation_histories
-		WHERE user_id = $1 AND expires_at > $2 ORDER BY created_at DESC LIMIT 50`, userID, now)
+		WHERE user_id = ? AND expires_at > ? ORDER BY created_at DESC LIMIT 50`, userID, now)
 	if err != nil {
 		return nil, err
 	}
@@ -185,15 +185,15 @@ func (repository *PostgresSavedCaseRepository) ListHistory(
 	return result, nil
 }
 
-func (repository *PostgresSavedCaseRepository) DeleteExpiredHistory(
+func (repository *MariaDBSavedCaseRepository) DeleteExpiredHistory(
 	ctx context.Context,
 	now time.Time,
 ) error {
-	_, err := repository.db.ExecContext(ctx, "DELETE FROM generation_histories WHERE expires_at <= $1", now)
+	_, err := repository.db.ExecContext(ctx, "DELETE FROM generation_histories WHERE expires_at <= ?", now)
 	return err
 }
 
-func (repository *PostgresSavedCaseRepository) SaveKilledCase(
+func (repository *MariaDBSavedCaseRepository) SaveKilledCase(
 	ctx context.Context,
 	killedCase domain.KilledCase,
 ) error {
@@ -208,7 +208,7 @@ func (repository *PostgresSavedCaseRepository) SaveKilledCase(
 	_, err = repository.db.ExecContext(ctx, `INSERT INTO killed_cases
 		(id, user_id, title, created_at, updated_at, recipe_json, failure_type,
 		reason_tags_json, notes, is_favorite)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+		VALUES (?,?,?,?,?,?,?,?,?,?)`,
 		killedCase.ID, killedCase.UserID, killedCase.Title, killedCase.CreatedAt,
 		killedCase.UpdatedAt, recipe, killedCase.FailureType, tags,
 		killedCase.Notes, killedCase.IsFavorite,
@@ -216,7 +216,7 @@ func (repository *PostgresSavedCaseRepository) SaveKilledCase(
 	return err
 }
 
-func (repository *PostgresSavedCaseRepository) ListKilledCases(
+func (repository *MariaDBSavedCaseRepository) ListKilledCases(
 	ctx context.Context,
 	userID string,
 	reasonTag string,
@@ -224,12 +224,11 @@ func (repository *PostgresSavedCaseRepository) ListKilledCases(
 	rows := []killedCaseRow{}
 	query := `SELECT id, user_id, title, created_at, updated_at, recipe_json,
 		failure_type, reason_tags_json, notes, is_favorite FROM killed_cases
-		WHERE user_id = $1`
+		WHERE user_id = ?`
 	args := []interface{}{userID}
 	if reasonTag != "" {
-		tagJSON, _ := json.Marshal([]string{reasonTag})
-		query += " AND reason_tags_json @> $2::jsonb"
-		args = append(args, string(tagJSON))
+		query += " AND JSON_CONTAINS(reason_tags_json, JSON_QUOTE(?), '$') = 1"
+		args = append(args, reasonTag)
 	}
 	query += " ORDER BY created_at DESC"
 	if err := repository.db.SelectContext(ctx, &rows, query, args...); err != nil {
@@ -255,7 +254,7 @@ func (repository *PostgresSavedCaseRepository) ListKilledCases(
 	return result, nil
 }
 
-func (repository *PostgresSavedCaseRepository) SavePreset(
+func (repository *MariaDBSavedCaseRepository) SavePreset(
 	ctx context.Context,
 	preset domain.GeneratorPreset,
 ) error {
@@ -265,20 +264,20 @@ func (repository *PostgresSavedCaseRepository) SavePreset(
 	}
 	_, err = repository.db.ExecContext(ctx, `INSERT INTO generator_presets
 		(id, user_id, name, created_at, updated_at, recipe_json)
-		VALUES ($1,$2,$3,$4,$5,$6)`,
+		VALUES (?,?,?,?,?,?)`,
 		preset.ID, preset.UserID, preset.Name, preset.CreatedAt, preset.UpdatedAt, recipe,
 	)
 	return err
 }
 
-func (repository *PostgresSavedCaseRepository) ListPresets(
+func (repository *MariaDBSavedCaseRepository) ListPresets(
 	ctx context.Context,
 	userID string,
 ) ([]domain.GeneratorPreset, error) {
 	rows := []presetRow{}
 	err := repository.db.SelectContext(ctx, &rows, `SELECT id, user_id, name,
 		created_at, updated_at, recipe_json FROM generator_presets
-		WHERE user_id = $1 ORDER BY created_at DESC`, userID)
+		WHERE user_id = ? ORDER BY created_at DESC`, userID)
 	if err != nil {
 		return nil, err
 	}

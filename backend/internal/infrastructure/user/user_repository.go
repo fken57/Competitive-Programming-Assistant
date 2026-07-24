@@ -3,7 +3,7 @@ package repository
 import (
 	"backend/internal/domain/user"
 
-	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 
 	"context"
@@ -23,14 +23,13 @@ func NewUserRepository(db *sqlx.DB) user.UserRepository {
 }
 
 func (r *userRepository) Save(ctx context.Context, u *user.User) error {
-	const query = `INSERT INTO users (id, username, password_hash, created_at) VALUES ($1, $2, $3, $4)`
+	const query = `INSERT INTO users (id, username, password_hash, created_at) VALUES (?, ?, ?, ?)`
 	snap := u.ToSnapshot()
 	_, err := r.db.ExecContext(ctx, query, snap.ID, snap.Username, snap.PasswordHash, snap.CreatedAt)
 	if err != nil {
-		if pgError, ok := err.(*pgconn.PgError); ok {
-			if pgError.Code == "23505" {
-				return user.ErrUsernameExists
-			}
+		var mysqlError *mysql.MySQLError
+		if errors.As(err, &mysqlError) && mysqlError.Number == 1062 {
+			return user.ErrUsernameExists
 		}
 		return err
 	}
@@ -38,7 +37,7 @@ func (r *userRepository) Save(ctx context.Context, u *user.User) error {
 }
 
 func (r *userRepository) FindByUsername(ctx context.Context, username string) (*user.User, error) {
-	const query = "SELECT id, username, password_hash, created_at FROM users WHERE username = $1"
+	const query = "SELECT id, username, password_hash, created_at FROM users WHERE username = ?"
 	var snap user.UserPlainSnapshot
 	err := r.db.GetContext(ctx, &snap, query, username)
 	if err != nil {
@@ -51,7 +50,7 @@ func (r *userRepository) FindByUsername(ctx context.Context, username string) (*
 }
 
 func (r *userRepository) FindByID(ctx context.Context, id string) (*user.User, error) {
-	const query = "SELECT id, username, password_hash, created_at FROM users WHERE id = $1"
+	const query = "SELECT id, username, password_hash, created_at FROM users WHERE id = ?"
 	var snap user.UserPlainSnapshot
 	err := r.db.GetContext(ctx, &snap, query, id)
 	if err != nil {
@@ -76,7 +75,7 @@ func NewSessionRepository(db *sqlx.DB) user.SessionRepository {
 func (repository *sessionRepository) SaveSession(ctx context.Context, session *user.Session) error {
 	const query = `INSERT INTO user_sessions
 		(id, user_id, token_hash, created_at, expires_at)
-		VALUES ($1, $2, $3, $4, $5)`
+		VALUES (?, ?, ?, ?, ?)`
 	snapshot := session.ToSnapshot()
 	_, err := repository.db.ExecContext(
 		ctx, query, snapshot.ID, snapshot.UserID, snapshot.TokenHash,
@@ -87,7 +86,7 @@ func (repository *sessionRepository) SaveSession(ctx context.Context, session *u
 
 func (repository *sessionRepository) FindSessionByTokenHash(ctx context.Context, tokenHash string) (*user.Session, error) {
 	const query = `SELECT id, user_id, token_hash, created_at, expires_at
-		FROM user_sessions WHERE token_hash = $1`
+		FROM user_sessions WHERE token_hash = ?`
 	var snapshot user.SessionSnapshot
 	if err := repository.db.GetContext(ctx, &snapshot, query, tokenHash); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -99,11 +98,11 @@ func (repository *sessionRepository) FindSessionByTokenHash(ctx context.Context,
 }
 
 func (repository *sessionRepository) DeleteSessionByTokenHash(ctx context.Context, tokenHash string) error {
-	_, err := repository.db.ExecContext(ctx, "DELETE FROM user_sessions WHERE token_hash = $1", tokenHash)
+	_, err := repository.db.ExecContext(ctx, "DELETE FROM user_sessions WHERE token_hash = ?", tokenHash)
 	return err
 }
 
 func (repository *sessionRepository) DeleteExpiredSessions(ctx context.Context, now time.Time) error {
-	_, err := repository.db.ExecContext(ctx, "DELETE FROM user_sessions WHERE expires_at <= $1", now)
+	_, err := repository.db.ExecContext(ctx, "DELETE FROM user_sessions WHERE expires_at <= ?", now)
 	return err
 }

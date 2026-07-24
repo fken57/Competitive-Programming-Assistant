@@ -1,20 +1,24 @@
 services:
   db:
-    image: postgres:15-alpine
+    image: mariadb:11.4
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-cpa_dev}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in backend/.env}
-      POSTGRES_DB: ${POSTGRES_DB:-cpa_dev}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-cpa_dev}
+      MARIADB_USER: ${MARIADB_USER:-cpa_dev}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?set MARIADB_PASSWORD in backend/.env}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?set MARIADB_ROOT_PASSWORD in backend/.env}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${MARIADB_PORT:-3306}:3306"
     volumes:
-      - cpa_postgres_data:/var/lib/postgresql/data
+      - cpa_mariadb_data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cpa_dev} -d ${POSTGRES_DB:-cpa_dev}"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
       timeout: 5s
       retries: 10
 
 volumes:
-  cpa_postgres_data:
+  cpa_mariadb_data:

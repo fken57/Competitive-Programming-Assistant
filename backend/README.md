@@ -9,10 +9,10 @@ go run .
 ## Authentication storage
 
 When `DATABASE_URL` is set, users, sessions, Random Gen histories, killed cases,
-and presets are stored in PostgreSQL. Required tables are created at startup.
+and presets are stored in MariaDB. Required tables are created at startup.
 
 ```powershell
-$env:DATABASE_URL='postgres://<user>:<password>@localhost:5432/<database>?sslmode=disable'
+$env:DATABASE_URL='mariadb://<user>:<password>@localhost:3306/<database>'
 $env:FRONTEND_ORIGIN='http://localhost:3000'
 go run .
 ```
