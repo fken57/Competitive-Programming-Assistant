@@ -1,0 +1,23 @@
+.graph-query-form {
+  display: grid;
+  gap: 14px;
+}
+
+.graph-query-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.graph-query-form .lca-query-field {
+  grid-column: 1 / -1;
+}
+
+.graph-query-error {
+  margin: 0;
+  padding: 10px;
+  border-radius: 7px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-weight: 700;
+}

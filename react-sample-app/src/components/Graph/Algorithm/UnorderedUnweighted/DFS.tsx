@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import './IsBinaryTree.css';
+import './GraphQueryForm.css';
+import { LabeledField } from '../../../common/LabeledField';
 import { MyButton } from '../../../common/button/Button';
 import { useUnweightedGraphApi } from '../../../../hooks/Graph/useUnweightedGraphApi';
 import { GRAPH_ENDPOINTS } from '../../../../util/NoCostGraphSendApis';
@@ -41,19 +43,29 @@ export function DFS({ adjacentList, graphType = 'undirected' }: DFSProps) {
 
     return (
         <div className="is-binary-tree-algorithm-container">
-            <div className="form-outline-input-area">
-                <input
-                    type="number"
-                    min={1}
-                    max={adjacentList.length}
-                    aria-label="DFSの開始頂点"
-                    value={startVertex}
-                    onChange={(event) => setStartVertex(event.target.value)}
-                />
-            </div>
-            {validationError && <div className="bfs-error-message">エラー: {validationError}</div>}
-            <div className="button-container">
-                <MyButton color="blue" onClick={handleSubmit}>{loading ? '実行中...' : `DFSを実行（${graphType === 'directed' ? '有向' : '無向'}）`}</MyButton>
+            <div className="graph-query-form">
+                <div className="graph-query-form-grid">
+                    <LabeledField
+                        label="DFSの開始頂点"
+                        hint={`1〜${adjacentList.length}の頂点番号を入力してください。`}
+                    >
+                        <input
+                            type="number"
+                            min={1}
+                            max={adjacentList.length}
+                            value={startVertex}
+                            onChange={(event) => setStartVertex(event.target.value)}
+                        />
+                    </LabeledField>
+                </div>
+                {validationError && (
+                    <p className="graph-query-error" role="alert">エラー: {validationError}</p>
+                )}
+                <div className="button-container">
+                    <MyButton color="blue" onClick={handleSubmit}>
+                        {loading ? '実行中...' : `DFSを実行（${graphType === 'directed' ? '有向' : '無向'}）`}
+                    </MyButton>
+                </div>
             </div>
             <div className="result-display-area">
                 {resultVisualData && (

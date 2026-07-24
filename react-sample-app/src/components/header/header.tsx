@@ -1,30 +1,56 @@
-import React from 'react';
-import {MyButton} from '../common/button/Button'
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { AuthDialog, AuthDialogMode } from '../Auth/AuthDialog';
+import { MyButton } from '../common/button/Button';
+import { SegmentedNavigation } from '../common/SegmentedNavigation';
+import { useAuth } from '../../hooks/Auth/useAuth';
 import './Header.css';
 
+function Header() {
+  const { user, loading, logout } = useAuth();
+  const [dialogMode, setDialogMode] = useState<AuthDialogMode | null>(null);
 
-function Header(){
-    return (
-        <header className='header-container'>
-            <div className='header-alignment'>
-                <h1 className='header-title'>
-                    Competitive Programming Assistant
-                </h1>
-                <div className='header-button-alignment'>
-                    <MyButton 
-                        color="black"
-                        children="新規登録"
-                        onClick={() => console.log('新規登録')}
-                    />
-                    <MyButton 
-                        color="green"
-                        children="ログイン"
-                        onClick={() => console.log('ログイン')}
-                    />
-                </div>
-            </div>
-        </header>
-    );
+  return (
+    <>
+      <header className="header-container">
+        <div className="header-alignment">
+          <Link className="header-title" to="/">Competitive Programming Assistant</Link>
+          <SegmentedNavigation
+            className="header-navigation"
+            label="ページ切替"
+            options={[
+              { to: '/', label: 'Home', end: true },
+              { to: '/graph', label: 'Graph' },
+              { to: '/array', label: 'Array' },
+              { to: '/random-gen', label: 'Random Gen' },
+            ]}
+          />
+          <div className="header-button-alignment">
+            {loading ? (
+              <span className="header-auth-state">認証確認中…</span>
+            ) : user ? (
+              <>
+                <span className="header-auth-state">{user.username}</span>
+                <MyButton color="#475569" onClick={() => void logout()}>ログアウト</MyButton>
+              </>
+            ) : (
+              <>
+                <MyButton color="#334155" onClick={() => setDialogMode('register')}>新規登録</MyButton>
+                <MyButton color="green" onClick={() => setDialogMode('login')}>ログイン</MyButton>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+      {dialogMode && (
+        <AuthDialog
+          mode={dialogMode}
+          onModeChange={setDialogMode}
+          onClose={() => setDialogMode(null)}
+        />
+      )}
+    </>
+  );
 }
 
 export default Header;

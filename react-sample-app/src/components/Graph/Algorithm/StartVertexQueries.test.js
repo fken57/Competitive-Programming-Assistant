@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { BFS } from './UnorderedUnweighted/BFS';
 import { DFS } from './UnorderedUnweighted/DFS';
+import { LCA } from './UnorderedUnweighted/LCA';
 import { Dijkstra } from './OrderedWeighted/Dijkstra';
 
 const mockPostUnweighted = jest.fn();
@@ -29,6 +30,8 @@ jest.mock('../GraphVisualizer', () => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockPostUnweighted.mockResolvedValue(null);
+  mockPostWeighted.mockResolvedValue(null);
 });
 
 test.each([
@@ -74,4 +77,36 @@ test('an out-of-range start vertex is rejected before the API call', () => {
 
   expect(mockPostUnweighted).not.toHaveBeenCalled();
   expect(screen.getByText(/1以上2以下/)).toBeInTheDocument();
+});
+
+test('BFS and DFS expose the same labeled start-vertex constraints', () => {
+  const { unmount } = render(<BFS adjacentList={[[1], [0]]} />);
+  expect(screen.getByRole('spinbutton', { name: 'BFSの開始頂点' })).toHaveAttribute('min', '1');
+  expect(screen.getByRole('spinbutton', { name: 'BFSの開始頂点' })).toHaveAttribute('max', '2');
+  expect(screen.getByText('1〜2の頂点番号を入力してください。')).toBeInTheDocument();
+  unmount();
+
+  render(<DFS adjacentList={[[1], [0]]} />);
+  expect(screen.getByRole('spinbutton', { name: 'DFSの開始頂点' })).toHaveAttribute('min', '1');
+  expect(screen.getByRole('spinbutton', { name: 'DFSの開始頂点' })).toHaveAttribute('max', '2');
+  expect(screen.getByText('1〜2の頂点番号を入力してください。')).toBeInTheDocument();
+});
+
+test('LCA sends its labeled root and multiline queries in the existing API format', () => {
+  render(<LCA adjacentList={[[1, 2], [0], [0]]} />);
+  fireEvent.change(screen.getByRole('spinbutton', { name: 'LCAの根の頂点' }), {
+    target: { value: '1' },
+  });
+  fireEvent.change(screen.getByRole('textbox', { name: 'LCAクエリ' }), {
+    target: { value: '2 3\n1 2' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: 'LCAを計算' }));
+
+  expect(mockPostUnweighted).toHaveBeenCalledWith(
+    expect.any(String),
+    expect.objectContaining({
+      root: 0,
+      queries: [[1, 2], [0, 1]],
+    }),
+  );
 });

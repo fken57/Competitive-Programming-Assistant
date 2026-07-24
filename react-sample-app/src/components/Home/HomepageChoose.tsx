@@ -17,10 +17,10 @@ export function HomepageContentChoose() {
                 linkTo="/array" // 仮のリンク
             />
             <NavigationCard
-                title="String Analyzer"
-                description="文字列の標準入力を受け取り、回文判定や部分文字列の検索など文字列特有の性質を解析します。"
+                title="Random Gen"
+                description="seedから再現可能な配列・木・グラフのランダム入力と、バグを誘発しやすい特殊ケースを生成します。"
                 imageSrc="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=600"
-                linkTo="/string" // 仮のリンク
+                linkTo="/random-gen"
             />
         </NavigationCardList>
     );

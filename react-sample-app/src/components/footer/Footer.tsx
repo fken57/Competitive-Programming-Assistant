@@ -21,8 +21,8 @@ export function Footer() {
                 <div className="footer-section">
                     <h3 className="footer-title">CPA - 競技プログラミング支援系</h3>
                     <p className="footer-description">
-                        グラフ、配列、文字列標準入力を受け取り、それらの性質を静的に解析するツールです。<br />
-                        不変量や特定の規則性を探すのに役立ちます。
+                        グラフや配列の静的解析と、再現可能な競技プログラミング入力生成を行うツールです。<br />
+                        不変量や特殊ケースを調べるのに役立ちます。
                     </p>
                 </div>
 
@@ -32,7 +32,7 @@ export function Footer() {
                         <li><Link to="/">Home</Link></li>
                         <li><Link to="/graph">Graph Analyzer</Link></li>
                         <li><Link to="/array">Array Analyzer</Link></li>
-                        <li><Link to="/string">String Analyzer</Link></li>
+                        <li><Link to="/random-gen">Random Gen</Link></li>
                     </ul>
                 </div>
 
