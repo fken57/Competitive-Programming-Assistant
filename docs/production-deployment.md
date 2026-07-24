@@ -26,8 +26,9 @@ Set these environment variables in NeoShowcase. Do not commit their values.
 Instead of `DATABASE_URL`, the application also accepts the complete set
 `MARIADB_HOST`, `MARIADB_PORT`, `MARIADB_DATABASE`, `MARIADB_USER`, and
 `MARIADB_PASSWORD`. The `MYSQL_*` and `DB_*` equivalents are accepted for
-managed environments. Set `MARIADB_TLS` (or its equivalent) when the database
-provider requires TLS.
+managed environments. NeoShowcase's native MariaDB integration is detected
+automatically through its `NS_MARIADB_*` variables. Set `MARIADB_TLS` (or its
+equivalent) when the database provider requires TLS.
 
 Production startup fails when neither a URL nor a complete MariaDB setting is
 present, or when `FRONTEND_ORIGIN` is missing.

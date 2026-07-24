@@ -70,10 +70,31 @@ func TestLoadConfigAcceptsMariaDBComponents(t *testing.T) {
 	}
 }
 
+func TestLoadConfigAcceptsNeoShowcaseMariaDBSettings(t *testing.T) {
+	clearDatabaseEnvironment(t)
+	t.Setenv("APP_ENV", productionEnvironment)
+	t.Setenv("FRONTEND_ORIGIN", "https://cpa.trap.games")
+	t.Setenv("NS_MARIADB_HOSTNAME", "mariadb.neoshowcase")
+	t.Setenv("NS_MARIADB_PORT", "3306")
+	t.Setenv("NS_MARIADB_DATABASE", "cpa")
+	t.Setenv("NS_MARIADB_USER", "cpa")
+	t.Setenv("NS_MARIADB_PASSWORD", "secret")
+
+	config, err := loadConfig()
+	if err != nil {
+		t.Fatalf("loadConfig returned an error: %v", err)
+	}
+	if config.DatabaseHost != "mariadb.neoshowcase" || !config.hasCompleteDatabaseSettings() {
+		t.Fatalf("unexpected NeoShowcase MariaDB config: %#v", config)
+	}
+}
+
 func clearDatabaseEnvironment(t *testing.T) {
 	t.Helper()
 	for _, name := range []string{
 		"DATABASE_URL",
+		"NS_MARIADB_HOSTNAME", "NS_MARIADB_PORT", "NS_MARIADB_DATABASE",
+		"NS_MARIADB_USER", "NS_MARIADB_PASSWORD",
 		"MARIADB_HOST", "MYSQL_HOST", "DB_HOST",
 		"MARIADB_PORT", "MYSQL_PORT", "DB_PORT",
 		"MARIADB_DATABASE", "MYSQL_DATABASE", "DB_NAME",
