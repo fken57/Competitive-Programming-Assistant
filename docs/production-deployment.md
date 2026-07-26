@@ -7,10 +7,12 @@ The root `Dockerfile` builds the React frontend and Go API into one container.
 
 - Repository: the repository containing this document
 - Branch: `main`
+- Deploy type: `Runtime`
+- Build type: `Dockerfile`
 - Dockerfile: `/Dockerfile`
 - Internal HTTP port: `8080`
 - Health check path: `/healthz`
-- Public route: the selected `https://<name>.trap.games` URL
+- Public route: the selected `https://<name>.trap.show` URL
 
 Set these environment variables in NeoShowcase. Do not commit their values.
 
@@ -18,7 +20,7 @@ Set these environment variables in NeoShowcase. Do not commit their values.
 | --- | --- |
 | `APP_ENV` | `production` |
 | `DATABASE_URL` | Production MariaDB URL, such as `mariadb://user:password@host:3306/database?tls=true` |
-| `FRONTEND_ORIGIN` | Exact public origin, such as `https://<name>.trap.games` |
+| `FRONTEND_ORIGIN` | Exact public origin, such as `https://<name>.trap.show` |
 | `PORT` | `8080` |
 | `STATIC_DIR` | `/app/static` |
 | `DEBUG` | `false` |
@@ -33,6 +35,22 @@ equivalent) when the database provider requires TLS.
 Production startup fails when neither a URL nor a complete MariaDB setting is
 present, or when `FRONTEND_ORIGIN` is missing.
 The app applies pending files in `backend/migrations` before accepting traffic.
+
+## NeoShowcase website routing
+
+The Dockerfile path and the NeoShowcase deploy type are separate settings. For
+this combined image, route `/` to the Runtime Dockerfile application. The Go
+server then serves the React build from `STATIC_DIR`, falls back to React only
+for page URLs, and preserves HTTP 404 responses for missing APIs and assets.
+
+If a Static deployment owns `/`, NeoShowcase's Caddy server handles the request
+before it can reach this application's Go server. Setting
+`Is SPA (Single Page Application)` to `Yes` fixes page deep links in that mode,
+but Caddy also falls back to `index.html` for missing asset paths. Therefore the
+Static mode does not provide this application's API/asset 404 distinction.
+
+When `/apis/...` works but `/array` returns an empty Caddy 404, first check which
+application owns `/` and whether the Static application has `Is SPA` enabled.
 
 ## Database separation
 
@@ -49,8 +67,8 @@ The app applies pending files in `backend/migrations` before accepting traffic.
 - Generation history stores `recipe_json`, not generated input text.
 - History records expire 24 hours after creation.
 - The application deletes expired histories at startup and every hour.
-- Killed cases and presets are retained until a future explicit deletion
-  feature is implemented.
+- Users can explicitly delete their own active history records and killed cases.
+- Presets are retained until a future explicit deletion feature is implemented.
 
 ## Backup policy
 
@@ -78,6 +96,9 @@ not provide a rollback or a backup.
 5. Confirm the `schema_migrations` table contains every file in
    `backend/migrations`.
 6. Check `/healthz` returns HTTP 200 and `"database":"connected"`.
-7. Test registration, login, generation history, killed-case save, and preset
+7. Open `/array` directly and reload it, then confirm an unknown page renders the
+   React NotFound screen while missing `/apis/...` routes and static assets return
+   HTTP 404.
+8. Test registration, login, generation history, killed-case save, and preset
    save against production.
-8. Monitor logs and database connections after release.
+9. Monitor logs and database connections after release.
