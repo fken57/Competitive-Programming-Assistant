@@ -33,7 +33,7 @@ const ArrayPage: React.FC = () => {
     <main className="array-page">
       <section className="array-page-header">
         <h1>Array Analyzer</h1>
-        <p>整数配列の性質を静的アルゴリズムで解析します。</p>
+        <p>整数配列の性質を静的アルゴリズムとQueryアルゴリズムで解析します。</p>
         <ArrayInputFormOutline
           onSubmit={handleSubmit}
           onInvalid={handleInvalid}
@@ -53,13 +53,18 @@ const ArrayPage: React.FC = () => {
           <AnalysisViewToggle mode={analysisViewMode} onChange={setAnalysisViewMode} />
           {analysisViewMode === 'container' ? (
             <ArrayAlgorithmFormOutline
-              key={arrayRevision}
+              key={`static-${arrayRevision}`}
               category="static"
               values={values}
             />
           ) : (
             <StaticArrayAnalysisList key={arrayRevision} values={values} />
           )}
+          <ArrayAlgorithmFormOutline
+            key={`query-${arrayRevision}`}
+            category="query"
+            values={values}
+          />
         </>
       )}
     </main>

@@ -28,12 +28,16 @@ function submitArray(input) {
   fireEvent.click(screen.getByRole('button', { name: '配列を読み込む' }));
 }
 
-test('valid standard input opens the static algorithm category', () => {
+test('valid standard input opens the static and query algorithm categories', () => {
   render(<ArrayPage />);
   submitArray('4\n3 1 2 1');
 
-  expect(screen.getByTestId('array-algorithm-panel')).toHaveAttribute('data-category', 'static');
-  expect(screen.getByTestId('array-algorithm-panel')).toHaveAttribute('data-values', '[3,1,2,1]');
+  const panels = screen.getAllByTestId('array-algorithm-panel');
+  expect(panels).toHaveLength(2);
+  expect(panels[0]).toHaveAttribute('data-category', 'static');
+  expect(panels[1]).toHaveAttribute('data-category', 'query');
+  expect(panels[0]).toHaveAttribute('data-values', '[3,1,2,1]');
+  expect(panels[1]).toHaveAttribute('data-values', '[3,1,2,1]');
 });
 
 test('invalid replacement input clears the previous array and results', () => {
@@ -48,11 +52,17 @@ test('invalid replacement input clears the previous array and results', () => {
 test('submitting a new array resets prior algorithm result state', () => {
   render(<ArrayPage />);
   submitArray('3\n1 2 3');
-  fireEvent.click(screen.getByRole('button', { name: 'simulate array result' }));
-  expect(screen.getByTestId('array-algorithm-panel')).toHaveAttribute('data-result-state', 'has-result');
+  screen.getAllByRole('button', { name: 'simulate array result' }).forEach((button) => {
+    fireEvent.click(button);
+  });
+  screen.getAllByTestId('array-algorithm-panel').forEach((panel) => {
+    expect(panel).toHaveAttribute('data-result-state', 'has-result');
+  });
 
   submitArray('2\n8 5');
-  expect(screen.getByTestId('array-algorithm-panel')).toHaveAttribute('data-result-state', 'clean');
+  screen.getAllByTestId('array-algorithm-panel').forEach((panel) => {
+    expect(panel).toHaveAttribute('data-result-state', 'clean');
+  });
 });
 
 test('changing the input source clears the loaded array', () => {
