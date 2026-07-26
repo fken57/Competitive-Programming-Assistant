@@ -130,6 +130,13 @@ func main() {
 	g.POST("/array/next_greater_to_right_strict", arrayHandler.NextGreaterToRightStrict)
 	g.POST("/array/next_smaller_to_right_strict", arrayHandler.NextSmallerToRightStrict)
 	g.POST("/array/longest_distinct_subarray", arrayHandler.LongestDistinctSubarray)
+	g.POST("/array/static_range_sum_query", arrayHandler.StaticRangeSumQuery)
+	g.POST("/array/count_subarrays_sum_equal_k", arrayHandler.CountSubarraysSumEqualK)
+	g.POST("/array/count_subarrays_sum_mod_equal_r", arrayHandler.CountSubarraysSumModEqualR)
+	g.POST("/array/fixed_window_minimum", arrayHandler.FixedWindowMinimum)
+	g.POST("/array/fixed_window_maximum", arrayHandler.FixedWindowMaximum)
+	g.POST("/array/count_pairs_sum_at_most_k_after_sort", arrayHandler.CountPairsSumAtMostKAfterSort)
+	g.POST("/array/count_pairs_abs_diff_at_most_k_after_sort", arrayHandler.CountPairsAbsDiffAtMostKAfterSort)
 	g.POST("/array/static/analyze", arrayHandler.AnalyzeStatic)
 
 	var savedCaseRepository randomgendomain.SavedCaseRepository
@@ -144,8 +151,10 @@ func main() {
 	g.POST("/random-gen/generate", randomGenHandler.Generate)
 	g.POST("/random-gen/history", randomGenHandler.SaveHistory, userAuthHandler.RequireAuth)
 	g.GET("/random-gen/history", randomGenHandler.ListHistory, userAuthHandler.RequireAuth)
+	g.DELETE("/random-gen/history/:id", randomGenHandler.DeleteHistory, userAuthHandler.RequireAuth)
 	g.POST("/random-gen/killed-cases", randomGenHandler.SaveKilledCase, userAuthHandler.RequireAuth)
 	g.GET("/random-gen/killed-cases", randomGenHandler.ListKilledCases, userAuthHandler.RequireAuth)
+	g.DELETE("/random-gen/killed-cases/:id", randomGenHandler.DeleteKilledCase, userAuthHandler.RequireAuth)
 	g.POST("/random-gen/presets", randomGenHandler.SavePreset, userAuthHandler.RequireAuth)
 	g.GET("/random-gen/presets", randomGenHandler.ListPresets, userAuthHandler.RequireAuth)
 
