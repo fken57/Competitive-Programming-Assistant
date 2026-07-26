@@ -1,6 +1,7 @@
 import {
   HISTORY_LIFETIME_MS,
   RANDOM_GEN_HISTORY_KEY,
+  deleteGenerationHistory,
   loadGenerationHistory,
   saveGenerationRecipe,
 } from './randomGenHistoryStorage';
@@ -35,4 +36,17 @@ test('saving the same recipe refreshes it without creating a duplicate', () => {
 
   expect(history).toHaveLength(1);
   expect(Date.parse(history[0].createdAt)).toBe(2_000);
+});
+
+test('deletes only the selected guest history item', () => {
+  const first = saveGenerationRecipe(recipe, localStorage, 1_000);
+  const secondRecipe = { ...recipe, seed: '2' };
+  const history = saveGenerationRecipe(secondRecipe, localStorage, 2_000);
+
+  const next = deleteGenerationHistory(first[0].id, localStorage, 2_001);
+
+  expect(next).toHaveLength(1);
+  expect(next[0].recipe.seed).toBe('2');
+  expect(JSON.parse(localStorage.getItem(RANDOM_GEN_HISTORY_KEY))).toEqual(next);
+  expect(history).toHaveLength(2);
 });

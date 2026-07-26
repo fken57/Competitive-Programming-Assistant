@@ -56,3 +56,13 @@ export function saveGenerationRecipe(
   storage.setItem(RANDOM_GEN_HISTORY_KEY, JSON.stringify(next));
   return next;
 }
+
+export function deleteGenerationHistory(
+  historyId: string,
+  storage: Pick<Storage, 'getItem' | 'setItem'> = localStorage,
+  now = Date.now(),
+): GenerationHistory[] {
+  const next = loadGenerationHistory(storage, now).filter((item) => item.id !== historyId);
+  storage.setItem(RANDOM_GEN_HISTORY_KEY, JSON.stringify(next));
+  return next;
+}

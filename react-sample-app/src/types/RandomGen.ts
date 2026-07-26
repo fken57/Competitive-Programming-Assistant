@@ -30,6 +30,17 @@ export type GenerationHistory = {
   killedFlag: boolean;
 };
 
+export type PaginationMetadata = {
+  page: number;
+  pageSize: number;
+  total: number;
+};
+
+export type GenerationHistoryPage = {
+  history: GenerationHistory[];
+  pagination: PaginationMetadata;
+};
+
 export type FailureType = 'WA' | 'RE' | 'TLE' | 'MLE' | 'CE' | 'UNKNOWN';
 
 export type KilledCase = {
@@ -42,6 +53,11 @@ export type KilledCase = {
   reasonTags: string[];
   notes: string;
   isFavorite: boolean;
+};
+
+export type KilledCasePage = {
+  killedCases: KilledCase[];
+  pagination: PaginationMetadata;
 };
 
 export type GeneratorPreset = {

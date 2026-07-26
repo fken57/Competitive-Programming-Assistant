@@ -45,15 +45,41 @@ func (usecase *RandomGenUsecase) SaveHistory(
 func (usecase *RandomGenUsecase) ListHistory(
 	ctx context.Context,
 	userID string,
-) ([]domain.GenerationHistory, error) {
+	page int,
+) (domain.GenerationHistoryPage, error) {
 	if usecase.savedCases == nil {
-		return nil, domain.ErrSavedCaseRepositoryUnavailable
+		return domain.GenerationHistoryPage{}, domain.ErrSavedCaseRepositoryUnavailable
+	}
+	if !isValidPage(page) {
+		return domain.GenerationHistoryPage{}, domain.ErrInvalidPage
 	}
 	now := usecase.now().UTC()
 	if err := usecase.savedCases.DeleteExpiredHistory(ctx, now); err != nil {
-		return nil, err
+		return domain.GenerationHistoryPage{}, err
 	}
-	return usecase.savedCases.ListHistory(ctx, userID, now)
+	history, total, err := usecase.savedCases.ListHistory(
+		ctx, userID, now, page, domain.SavedCasesPageSize,
+	)
+	if err != nil {
+		return domain.GenerationHistoryPage{}, err
+	}
+	return domain.GenerationHistoryPage{
+		History: history,
+		Pagination: domain.Pagination{
+			Page: page, PageSize: domain.SavedCasesPageSize, Total: total,
+		},
+	}, nil
+}
+
+func (usecase *RandomGenUsecase) DeleteHistory(
+	ctx context.Context,
+	userID string,
+	historyID string,
+) error {
+	if usecase.savedCases == nil {
+		return domain.ErrSavedCaseRepositoryUnavailable
+	}
+	return usecase.savedCases.DeleteHistory(ctx, userID, historyID)
 }
 
 func (usecase *RandomGenUsecase) SaveKilledCase(
@@ -84,11 +110,37 @@ func (usecase *RandomGenUsecase) ListKilledCases(
 	ctx context.Context,
 	userID string,
 	reasonTag string,
-) ([]domain.KilledCase, error) {
+	page int,
+) (domain.KilledCasePage, error) {
 	if usecase.savedCases == nil {
-		return nil, domain.ErrSavedCaseRepositoryUnavailable
+		return domain.KilledCasePage{}, domain.ErrSavedCaseRepositoryUnavailable
 	}
-	return usecase.savedCases.ListKilledCases(ctx, userID, reasonTag)
+	if !isValidPage(page) {
+		return domain.KilledCasePage{}, domain.ErrInvalidPage
+	}
+	killedCases, total, err := usecase.savedCases.ListKilledCases(
+		ctx, userID, reasonTag, page, domain.SavedCasesPageSize,
+	)
+	if err != nil {
+		return domain.KilledCasePage{}, err
+	}
+	return domain.KilledCasePage{
+		KilledCases: killedCases,
+		Pagination: domain.Pagination{
+			Page: page, PageSize: domain.SavedCasesPageSize, Total: total,
+		},
+	}, nil
+}
+
+func (usecase *RandomGenUsecase) DeleteKilledCase(
+	ctx context.Context,
+	userID string,
+	killedCaseID string,
+) error {
+	if usecase.savedCases == nil {
+		return domain.ErrSavedCaseRepositoryUnavailable
+	}
+	return usecase.savedCases.DeleteKilledCase(ctx, userID, killedCaseID)
 }
 
 func (usecase *RandomGenUsecase) SavePreset(
@@ -126,4 +178,12 @@ func (usecase *RandomGenUsecase) validateSavedRecipe(recipe domain.GenerationRec
 	}
 	_, err := domain.Generate(recipe)
 	return err
+}
+
+func isValidPage(page int) bool {
+	if page < 1 {
+		return false
+	}
+	maxInt := int(^uint(0) >> 1)
+	return page-1 <= maxInt/domain.SavedCasesPageSize
 }

@@ -3,9 +3,11 @@ import {
   FailureType,
   GeneratedCase,
   GenerationHistory,
+  GenerationHistoryPage,
   GenerationRecipe,
   GeneratorPreset,
   KilledCase,
+  KilledCasePage,
 } from '../types/RandomGen';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/apis';
@@ -38,6 +40,10 @@ async function requireJSON<T>(response: Response): Promise<T> {
   return response.json();
 }
 
+async function requireOK(response: Response): Promise<void> {
+  if (!response.ok) throw new Error(await getApiErrorMessage(response));
+}
+
 export async function saveServerHistory(recipe: GenerationRecipe): Promise<GenerationHistory> {
   return requireJSON(await savedCaseRequest('/history', {
     method: 'POST',
@@ -45,11 +51,14 @@ export async function saveServerHistory(recipe: GenerationRecipe): Promise<Gener
   }));
 }
 
-export async function listServerHistory(): Promise<GenerationHistory[]> {
-  const response = await requireJSON<{ history: GenerationHistory[] }>(
-    await savedCaseRequest('/history'),
-  );
-  return response.history;
+export async function listServerHistory(page = 1): Promise<GenerationHistoryPage> {
+  return requireJSON(await savedCaseRequest(`/history?page=${page}`));
+}
+
+export async function deleteServerHistory(historyId: string): Promise<void> {
+  await requireOK(await savedCaseRequest(`/history/${encodeURIComponent(historyId)}`, {
+    method: 'DELETE',
+  }));
 }
 
 export async function saveKilledCase(input: {
@@ -65,12 +74,16 @@ export async function saveKilledCase(input: {
   }));
 }
 
-export async function listKilledCases(tag = ''): Promise<KilledCase[]> {
-  const query = tag ? `?tag=${encodeURIComponent(tag)}` : '';
-  const response = await requireJSON<{ killedCases: KilledCase[] }>(
-    await savedCaseRequest(`/killed-cases${query}`),
-  );
-  return response.killedCases;
+export async function listKilledCases(page = 1, tag = ''): Promise<KilledCasePage> {
+  const query = new URLSearchParams({ page: String(page) });
+  if (tag) query.set('tag', tag);
+  return requireJSON(await savedCaseRequest(`/killed-cases?${query.toString()}`));
+}
+
+export async function deleteKilledCase(killedCaseId: string): Promise<void> {
+  await requireOK(await savedCaseRequest(`/killed-cases/${encodeURIComponent(killedCaseId)}`, {
+    method: 'DELETE',
+  }));
 }
 
 export async function saveGeneratorPreset(

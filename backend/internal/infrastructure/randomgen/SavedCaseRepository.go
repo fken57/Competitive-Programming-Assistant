@@ -38,7 +38,9 @@ func (repository *MemorySavedCaseRepository) ListHistory(
 	_ context.Context,
 	userID string,
 	now time.Time,
-) ([]domain.GenerationHistory, error) {
+	page int,
+	pageSize int,
+) ([]domain.GenerationHistory, int, error) {
 	repository.mutex.RLock()
 	defer repository.mutex.RUnlock()
 	result := make([]domain.GenerationHistory, 0)
@@ -48,10 +50,28 @@ func (repository *MemorySavedCaseRepository) ListHistory(
 		}
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].CreatedAt.After(result[j].CreatedAt) })
-	if len(result) > 50 {
-		result = result[:50]
+	if len(result) > domain.MaxGenerationHistoryEntries {
+		result = result[:domain.MaxGenerationHistoryEntries]
 	}
-	return result, nil
+	total := len(result)
+	return paginate(result, page, pageSize), total, nil
+}
+
+func (repository *MemorySavedCaseRepository) DeleteHistory(
+	_ context.Context,
+	userID string,
+	historyID string,
+) error {
+	repository.mutex.Lock()
+	defer repository.mutex.Unlock()
+	for index, item := range repository.history {
+		if item.ID != historyID || item.UserID != userID {
+			continue
+		}
+		repository.history = append(repository.history[:index], repository.history[index+1:]...)
+		return nil
+	}
+	return domain.ErrSavedCaseNotFound
 }
 
 func (repository *MemorySavedCaseRepository) DeleteExpiredHistory(
@@ -84,7 +104,9 @@ func (repository *MemorySavedCaseRepository) ListKilledCases(
 	_ context.Context,
 	userID string,
 	reasonTag string,
-) ([]domain.KilledCase, error) {
+	page int,
+	pageSize int,
+) ([]domain.KilledCase, int, error) {
 	repository.mutex.RLock()
 	defer repository.mutex.RUnlock()
 	result := make([]domain.KilledCase, 0)
@@ -95,7 +117,25 @@ func (repository *MemorySavedCaseRepository) ListKilledCases(
 		result = append(result, item)
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].CreatedAt.After(result[j].CreatedAt) })
-	return result, nil
+	total := len(result)
+	return paginate(result, page, pageSize), total, nil
+}
+
+func (repository *MemorySavedCaseRepository) DeleteKilledCase(
+	_ context.Context,
+	userID string,
+	killedCaseID string,
+) error {
+	repository.mutex.Lock()
+	defer repository.mutex.Unlock()
+	for index, item := range repository.killed {
+		if item.ID != killedCaseID || item.UserID != userID {
+			continue
+		}
+		repository.killed = append(repository.killed[:index], repository.killed[index+1:]...)
+		return nil
+	}
+	return domain.ErrSavedCaseNotFound
 }
 
 func (repository *MemorySavedCaseRepository) SavePreset(
@@ -133,6 +173,18 @@ func contains(values []string, target string) bool {
 	return false
 }
 
+func paginate[T any](items []T, page int, pageSize int) []T {
+	start := (page - 1) * pageSize
+	if start < 0 || start >= len(items) {
+		return []T{}
+	}
+	end := start + pageSize
+	if end > len(items) {
+		end = len(items)
+	}
+	return items[start:end]
+}
+
 type MariaDBSavedCaseRepository struct {
 	db *sqlx.DB
 }
@@ -163,26 +215,58 @@ func (repository *MariaDBSavedCaseRepository) ListHistory(
 	ctx context.Context,
 	userID string,
 	now time.Time,
-) ([]domain.GenerationHistory, error) {
+	page int,
+	pageSize int,
+) ([]domain.GenerationHistory, int, error) {
+	var total int
+	if err := repository.db.GetContext(ctx, &total, `SELECT COUNT(*) FROM generation_histories
+		WHERE user_id = ? AND expires_at > ?`, userID, now); err != nil {
+		return nil, 0, err
+	}
+	if total > domain.MaxGenerationHistoryEntries {
+		total = domain.MaxGenerationHistoryEntries
+	}
+	offset := (page - 1) * pageSize
+	if offset >= domain.MaxGenerationHistoryEntries || offset >= total {
+		return []domain.GenerationHistory{}, total, nil
+	}
 	rows := []historyRow{}
 	err := repository.db.SelectContext(ctx, &rows, `SELECT id, user_id, created_at, expires_at,
 		recipe_json, killed_flag FROM generation_histories
-		WHERE user_id = ? AND expires_at > ? ORDER BY created_at DESC LIMIT 50`, userID, now)
+		WHERE user_id = ? AND expires_at > ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		userID, now, pageSize, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	result := make([]domain.GenerationHistory, len(rows))
 	for index, row := range rows {
 		recipe, err := decodeRecipe(row.RecipeJSON)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		result[index] = domain.GenerationHistory{
 			ID: row.ID, UserID: row.UserID, CreatedAt: row.CreatedAt,
 			ExpiresAt: row.ExpiresAt, Recipe: recipe, KilledFlag: row.KilledFlag,
 		}
 	}
-	return result, nil
+	return result, total, nil
+}
+
+func (repository *MariaDBSavedCaseRepository) DeleteHistory(
+	ctx context.Context,
+	userID string,
+	historyID string,
+) error {
+	result, err := repository.db.ExecContext(
+		ctx,
+		"DELETE FROM generation_histories WHERE id = ? AND user_id = ?",
+		historyID,
+		userID,
+	)
+	if err != nil {
+		return err
+	}
+	return deletionResult(result)
 }
 
 func (repository *MariaDBSavedCaseRepository) DeleteExpiredHistory(
@@ -220,29 +304,38 @@ func (repository *MariaDBSavedCaseRepository) ListKilledCases(
 	ctx context.Context,
 	userID string,
 	reasonTag string,
-) ([]domain.KilledCase, error) {
+	page int,
+	pageSize int,
+) ([]domain.KilledCase, int, error) {
 	rows := []killedCaseRow{}
-	query := `SELECT id, user_id, title, created_at, updated_at, recipe_json,
-		failure_type, reason_tags_json, notes, is_favorite FROM killed_cases
-		WHERE user_id = ?`
+	whereClause := " WHERE user_id = ?"
 	args := []interface{}{userID}
 	if reasonTag != "" {
-		query += " AND JSON_CONTAINS(reason_tags_json, JSON_QUOTE(?), '$') = 1"
+		whereClause += " AND JSON_CONTAINS(reason_tags_json, JSON_QUOTE(?), '$') = 1"
 		args = append(args, reasonTag)
 	}
-	query += " ORDER BY created_at DESC"
-	if err := repository.db.SelectContext(ctx, &rows, query, args...); err != nil {
-		return nil, err
+	var total int
+	if err := repository.db.GetContext(
+		ctx, &total, "SELECT COUNT(*) FROM killed_cases"+whereClause, args...,
+	); err != nil {
+		return nil, 0, err
+	}
+	query := `SELECT id, user_id, title, created_at, updated_at, recipe_json,
+		failure_type, reason_tags_json, notes, is_favorite FROM killed_cases` +
+		whereClause + " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+	listArgs := append(append([]interface{}{}, args...), pageSize, (page-1)*pageSize)
+	if err := repository.db.SelectContext(ctx, &rows, query, listArgs...); err != nil {
+		return nil, 0, err
 	}
 	result := make([]domain.KilledCase, len(rows))
 	for index, row := range rows {
 		recipe, err := decodeRecipe(row.RecipeJSON)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		var tags []string
 		if err := json.Unmarshal(row.ReasonTagsJSON, &tags); err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		result[index] = domain.KilledCase{
 			ID: row.ID, UserID: row.UserID, Title: row.Title,
@@ -251,7 +344,24 @@ func (repository *MariaDBSavedCaseRepository) ListKilledCases(
 			IsFavorite: row.IsFavorite,
 		}
 	}
-	return result, nil
+	return result, total, nil
+}
+
+func (repository *MariaDBSavedCaseRepository) DeleteKilledCase(
+	ctx context.Context,
+	userID string,
+	killedCaseID string,
+) error {
+	result, err := repository.db.ExecContext(
+		ctx,
+		"DELETE FROM killed_cases WHERE id = ? AND user_id = ?",
+		killedCaseID,
+		userID,
+	)
+	if err != nil {
+		return err
+	}
+	return deletionResult(result)
 }
 
 func (repository *MariaDBSavedCaseRepository) SavePreset(
@@ -330,4 +440,19 @@ func decodeRecipe(value json.RawMessage) (domain.GenerationRecipe, error) {
 	var recipe domain.GenerationRecipe
 	err := json.Unmarshal(value, &recipe)
 	return recipe, err
+}
+
+type rowsAffectedResult interface {
+	RowsAffected() (int64, error)
+}
+
+func deletionResult(result rowsAffectedResult) error {
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return domain.ErrSavedCaseNotFound
+	}
+	return nil
 }

@@ -9,7 +9,16 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrSavedCaseRepositoryUnavailable = errors.New("saved case repository is unavailable")
+var (
+	ErrSavedCaseRepositoryUnavailable = errors.New("saved case repository is unavailable")
+	ErrSavedCaseNotFound              = errors.New("saved case not found")
+	ErrInvalidPage                    = errors.New("page is out of range")
+)
+
+const (
+	SavedCasesPageSize          = 10
+	MaxGenerationHistoryEntries = 50
+)
 
 var validFailureTypes = map[string]bool{
 	"WA": true, "RE": true, "TLE": true, "MLE": true,
@@ -47,12 +56,42 @@ type GeneratorPreset struct {
 	Recipe    GenerationRecipe `json:"recipe"`
 }
 
+type Pagination struct {
+	Page     int `json:"page"`
+	PageSize int `json:"pageSize"`
+	Total    int `json:"total"`
+}
+
+type GenerationHistoryPage struct {
+	History    []GenerationHistory `json:"history"`
+	Pagination Pagination          `json:"pagination"`
+}
+
+type KilledCasePage struct {
+	KilledCases []KilledCase `json:"killedCases"`
+	Pagination  Pagination   `json:"pagination"`
+}
+
 type SavedCaseRepository interface {
 	SaveHistory(ctx context.Context, history GenerationHistory) error
-	ListHistory(ctx context.Context, userID string, now time.Time) ([]GenerationHistory, error)
+	ListHistory(
+		ctx context.Context,
+		userID string,
+		now time.Time,
+		page int,
+		pageSize int,
+	) ([]GenerationHistory, int, error)
+	DeleteHistory(ctx context.Context, userID, historyID string) error
 	DeleteExpiredHistory(ctx context.Context, now time.Time) error
 	SaveKilledCase(ctx context.Context, killedCase KilledCase) error
-	ListKilledCases(ctx context.Context, userID, reasonTag string) ([]KilledCase, error)
+	ListKilledCases(
+		ctx context.Context,
+		userID string,
+		reasonTag string,
+		page int,
+		pageSize int,
+	) ([]KilledCase, int, error)
+	DeleteKilledCase(ctx context.Context, userID, killedCaseID string) error
 	SavePreset(ctx context.Context, preset GeneratorPreset) error
 	ListPresets(ctx context.Context, userID string) ([]GeneratorPreset, error)
 }

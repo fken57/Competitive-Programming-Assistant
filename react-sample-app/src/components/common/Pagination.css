@@ -1,0 +1,27 @@
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.pagination button {
+  padding: 8px 12px;
+  border: 1px solid #94a3b8;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.pagination span {
+  min-width: 90px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
