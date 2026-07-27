@@ -1,0 +1,1192 @@
+openapi: 3.1.0
+info:
+  title: Competitive Programming Assistant API
+  version: 1.0.0
+  description: |
+    Competitive Programming Assistant が公開する HTTP API。
+    配列・グラフの解析、再現可能なテストケース生成、認証ユーザー向けの履歴・撃墜ケース・プリセット保存を提供します。
+    頂点番号と API の配列区間は 0-based です。区間の右端は含みません。
+servers:
+  - url: https://competitive-programming-assistant.trap.show
+    description: Production
+  - url: http://localhost:8080
+    description: Local development
+tags:
+  - name: System
+  - name: Authentication
+  - name: Array
+  - name: Unweighted graph
+  - name: Weighted graph
+  - name: Random Gen
+
+paths:
+  /healthz:
+    get:
+      tags: [System]
+      operationId: getHealth
+      summary: アプリケーションとデータベースの状態を取得する
+      responses:
+        '200':
+          description: 正常
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Health'}
+        '503':
+          description: データベースに接続できない
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Health'}
+  /apis/hello:
+    get:
+      tags: [System]
+      operationId: getHello
+      summary: API 疎通確認
+      responses:
+        '200':
+          description: 正常
+          content:
+            text/plain:
+              schema: {type: string, example: "Hello, World.\n"}
+
+  /apis/users/create:
+    post:
+      tags: [Authentication]
+      operationId: createUser
+      summary: ユーザーを作成する
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Credentials'}
+      responses:
+        '201':
+          description: 作成済みユーザー
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/User'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /apis/users/login:
+    post:
+      tags: [Authentication]
+      operationId: login
+      summary: ログインしてセッション Cookie を発行する
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Credentials'}
+      responses:
+        '200':
+          description: ログイン成功。cpa_session Cookie を設定する。
+          headers:
+            Set-Cookie:
+              schema: {type: string}
+              example: cpa_session=...; Path=/; HttpOnly; SameSite=Lax
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/User'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /apis/users/logout:
+    post:
+      tags: [Authentication]
+      operationId: logout
+      summary: ログアウトしてセッション Cookie を破棄する
+      responses:
+        '204': {description: ログアウト成功}
+  /apis/users/me:
+    get:
+      tags: [Authentication]
+      operationId: getCurrentUser
+      summary: ログイン中のユーザーを取得する
+      security: [{cookieAuth: []}]
+      responses:
+        '200':
+          description: ログイン中のユーザー
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/User'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /apis/array/build_prefix_sum:
+    post:
+      tags: [Array]
+      operationId: buildPrefixSum
+      summary: 累積和を構築する
+      requestBody: {$ref: '#/components/requestBodies/ArrayValues'}
+      responses:
+        '200':
+          description: 長さ n + 1 の累積和
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [prefix_sum]
+                properties:
+                  prefix_sum: {$ref: '#/components/schemas/Integer64Array'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/array/compress_values:
+    post:
+      tags: [Array]
+      operationId: compressArrayValues
+      summary: 座標圧縮する
+      requestBody: {$ref: '#/components/requestBodies/ArrayValues'}
+      responses:
+        '200':
+          description: 圧縮後の値と昇順の異なる値
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [compressed_values, distinct_values]
+                properties:
+                  compressed_values: {type: array, items: {type: integer}}
+                  distinct_values: {$ref: '#/components/schemas/Integer64Array'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/array/count_inversions:
+    post:
+      tags: [Array]
+      operationId: countInversions
+      summary: 転倒数を数える
+      requestBody: {$ref: '#/components/requestBodies/ArrayValues'}
+      responses:
+        '200':
+          description: 転倒数
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [inversion_count]
+                properties: {inversion_count: {type: integer, format: int64, minimum: 0}}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/array/static_mex:
+    post:
+      tags: [Array]
+      operationId: getStaticMex
+      summary: 配列全体の mex を求める
+      requestBody: {$ref: '#/components/requestBodies/ArrayValues'}
+      responses:
+        '200':
+          description: mex
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [mex]
+                properties: {mex: {type: integer, minimum: 0}}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/array/run_length_encoding:
+    post:
+      tags: [Array]
+      operationId: runLengthEncode
+      summary: Run Length Encoding を行う
+      requestBody: {$ref: '#/components/requestBodies/ArrayValues'}
+      responses:
+        '200':
+          description: 連続区間
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [runs]
+                properties:
+                  runs:
+                    type: array
+                    items:
+                      type: object
+                      required: [value, count]
+                      properties:
+                        value: {$ref: '#/components/schemas/Integer64'}
+                        count: {type: integer, minimum: 1}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/array/next_greater_to_right_strict:
+    post:
+      tags: [Array]
+      operationId: getNextGreaterToRightStrict
+      summary: 右側で最初に現れる真に大きい要素を求める
+      requestBody: {$ref: '#/components/requestBodies/ArrayValues'}
+      responses:
+        '200': {$ref: '#/components/responses/NextElement'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/array/next_smaller_to_right_strict:
+    post:
+      tags: [Array]
+      operationId: getNextSmallerToRightStrict
+      summary: 右側で最初に現れる真に小さい要素を求める
+      requestBody: {$ref: '#/components/requestBodies/ArrayValues'}
+      responses:
+        '200': {$ref: '#/components/responses/NextElement'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/array/longest_distinct_subarray:
+    post:
+      tags: [Array]
+      operationId: getLongestDistinctSubarray
+      summary: 全要素が異なる最長部分配列を求める
+      requestBody: {$ref: '#/components/requestBodies/ArrayValues'}
+      responses:
+        '200':
+          description: 最長区間とその値
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [length, left, right_exclusive, values]
+                properties:
+                  length: {type: integer, minimum: 0}
+                  left: {type: integer, minimum: 0}
+                  right_exclusive: {type: integer, minimum: 0}
+                  values: {$ref: '#/components/schemas/Integer64Array'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/array/static_range_sum_query:
+    post:
+      tags: [Array]
+      operationId: getStaticRangeSum
+      summary: 半開区間 [left, right_exclusive) の和を求める
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RangeQueryRequest'}
+      responses:
+        '200':
+          description: 区間和
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sum]
+                properties: {sum: {$ref: '#/components/schemas/Integer64'}}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/array/count_subarrays_sum_equal_k:
+    post:
+      tags: [Array]
+      operationId: countSubarraysSumEqualK
+      summary: 和が target に等しい部分配列を数える
+      requestBody: {$ref: '#/components/requestBodies/TargetArray'}
+      responses:
+        '200': {$ref: '#/components/responses/Count'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/array/count_subarrays_sum_mod_equal_r:
+    post:
+      tags: [Array]
+      operationId: countSubarraysSumModEqualR
+      summary: 和の剰余が remainder に等しい部分配列を数える
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - {$ref: '#/components/schemas/ArrayValuesRequest'}
+                - type: object
+                  required: [modulus, remainder]
+                  properties:
+                    modulus: {type: integer, format: int64, minimum: 1}
+                    remainder: {type: integer, format: int64, minimum: 0}
+      responses:
+        '200': {$ref: '#/components/responses/Count'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/array/fixed_window_minimum:
+    post:
+      tags: [Array]
+      operationId: getFixedWindowMinimum
+      summary: 固定長ウィンドウごとの最小値を求める
+      requestBody: {$ref: '#/components/requestBodies/WindowArray'}
+      responses:
+        '200':
+          description: 各ウィンドウの最小値
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [minimums]
+                properties: {minimums: {$ref: '#/components/schemas/Integer64Array'}}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/array/fixed_window_maximum:
+    post:
+      tags: [Array]
+      operationId: getFixedWindowMaximum
+      summary: 固定長ウィンドウごとの最大値を求める
+      requestBody: {$ref: '#/components/requestBodies/WindowArray'}
+      responses:
+        '200':
+          description: 各ウィンドウの最大値
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [maximums]
+                properties: {maximums: {$ref: '#/components/schemas/Integer64Array'}}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/array/count_pairs_sum_at_most_k_after_sort:
+    post:
+      tags: [Array]
+      operationId: countPairsSumAtMostKAfterSort
+      summary: 和が target 以下の添字ペアを数える
+      requestBody: {$ref: '#/components/requestBodies/TargetArray'}
+      responses:
+        '200': {$ref: '#/components/responses/Count'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/array/count_pairs_abs_diff_at_most_k_after_sort:
+    post:
+      tags: [Array]
+      operationId: countPairsAbsDiffAtMostKAfterSort
+      summary: 差の絶対値が max_difference 以下の添字ペアを数える
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - {$ref: '#/components/schemas/ArrayValuesRequest'}
+                - type: object
+                  required: [max_difference]
+                  properties:
+                    max_difference: {type: integer, format: int64, minimum: 0}
+      responses:
+        '200': {$ref: '#/components/responses/Count'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/array/static/analyze:
+    post:
+      tags: [Array]
+      operationId: analyzeStaticArray
+      summary: 8 種類の静的配列解析をまとめて実行する
+      requestBody: {$ref: '#/components/requestBodies/ArrayValues'}
+      responses:
+        '200': {$ref: '#/components/responses/BatchAnalysis'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+
+  /apis/graphs/unweighted/unordered:
+    post:
+      tags: [Unweighted graph]
+      operationId: createUnweightedUndirectedGraph
+      summary: 重みなし無向グラフを構築する
+      requestBody: {$ref: '#/components/requestBodies/UnweightedEdges'}
+      responses:
+        '201': {$ref: '#/components/responses/Graph'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/unweighted/ordered:
+    post:
+      tags: [Unweighted graph]
+      operationId: createUnweightedDirectedGraph
+      summary: 重みなし有向グラフを構築する
+      requestBody: {$ref: '#/components/requestBodies/UnweightedEdges'}
+      responses:
+        '201': {$ref: '#/components/responses/Graph'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/unweighted/BFS:
+    post:
+      tags: [Unweighted graph]
+      operationId: breadthFirstSearch
+      summary: 幅優先探索を実行する
+      description: パスは大文字の `BFS` です。
+      requestBody: {$ref: '#/components/requestBodies/UnweightedNeighbors'}
+      responses:
+        '200':
+          description: 訪問順
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [start_vertex, visited_vertices]
+                properties:
+                  start_vertex: {type: integer, minimum: 0}
+                  visited_vertices: {type: array, items: {type: integer, minimum: 0}}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/unweighted/dfs:
+    post:
+      tags: [Unweighted graph]
+      operationId: depthFirstSearch
+      summary: 深さ優先探索を実行する
+      requestBody: {$ref: '#/components/requestBodies/UnweightedNeighbors'}
+      responses:
+        '200':
+          description: DFS の行きがけ順・帰りがけ順・親
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DFSResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/unweighted/unordered/isbinarytree:
+    post:
+      tags: [Unweighted graph]
+      operationId: checkBipartite
+      summary: 二部グラフか判定する
+      requestBody: {$ref: '#/components/requestBodies/UnweightedEdges'}
+      responses:
+        '200':
+          description: 二部グラフ判定
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/BipartiteResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/unweighted/unordered/istree:
+    post:
+      tags: [Unweighted graph]
+      operationId: checkTree
+      summary: 木か判定する
+      requestBody: {$ref: '#/components/requestBodies/UnweightedEdges'}
+      responses:
+        '200':
+          description: 木判定
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TreeCheckResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/unweighted/unordered/treedistance:
+    post:
+      tags: [Unweighted graph]
+      operationId: getTreeDistance
+      summary: 木上の 2 頂点間距離を求める
+      requestBody: {$ref: '#/components/requestBodies/UnweightedEdges'}
+      responses:
+        '200':
+          description: 木の直径端点と距離情報
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TreeDistanceResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/unweighted/ordered/topologicalsort:
+    post:
+      tags: [Unweighted graph]
+      operationId: topologicalSort
+      summary: トポロジカルソートを行う
+      requestBody: {$ref: '#/components/requestBodies/UnweightedEdges'}
+      responses:
+        '200':
+          description: ソート結果または閉路
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TopologicalSortResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/unweighted/ordered/scc:
+    post:
+      tags: [Unweighted graph]
+      operationId: getStronglyConnectedComponents
+      summary: 強連結成分分解を行う
+      requestBody: {$ref: '#/components/requestBodies/UnweightedEdges'}
+      responses:
+        '200':
+          description: 強連結成分
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sccs]
+                properties:
+                  sccs: {type: array, items: {type: array, items: {type: integer, minimum: 0}}}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/unweighted/unordered/connectedcomponents:
+    post:
+      tags: [Unweighted graph]
+      operationId: getConnectedComponents
+      summary: 連結成分分解を行う
+      requestBody: {$ref: '#/components/requestBodies/UnweightedEdges'}
+      responses:
+        '200':
+          description: 連結成分
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [components]
+                properties:
+                  components: {type: array, items: {type: array, items: {type: integer, minimum: 0}}}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/unweighted/ordered/cycle:
+    post:
+      tags: [Unweighted graph]
+      operationId: detectDirectedCycle
+      summary: 有向閉路を検出する
+      requestBody: {$ref: '#/components/requestBodies/UnweightedEdges'}
+      responses:
+        '200':
+          description: 閉路検出結果
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CycleResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/unweighted/unordered/unionfind:
+    post:
+      tags: [Unweighted graph]
+      operationId: executeUnionFind
+      summary: Union-Find の状態を取得する
+      requestBody: {$ref: '#/components/requestBodies/UnweightedEdges'}
+      responses:
+        '200':
+          description: 親配列と連結成分
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/UnionFindResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/unweighted/unordered/lowlink:
+    post:
+      tags: [Unweighted graph]
+      operationId: getLowLink
+      summary: 関節点と橋を求める
+      requestBody: {$ref: '#/components/requestBodies/UnweightedEdges'}
+      responses:
+        '200':
+          description: 関節点と橋
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LowLinkResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/unweighted/unordered/lca:
+    post:
+      tags: [Unweighted graph]
+      operationId: getLowestCommonAncestors
+      summary: 根付き木の LCA をまとめて求める
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/LCARequest'}
+      responses:
+        '200':
+          description: 各クエリの LCA
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [root, lcas]
+                properties:
+                  root: {type: integer, minimum: 0}
+                  lcas: {type: array, items: {type: integer}}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/unweighted/unordered/analyze:
+    post:
+      tags: [Unweighted graph]
+      operationId: analyzeUnweightedUndirectedGraph
+      summary: 無向グラフの複数の静的解析をまとめて実行する
+      requestBody: {$ref: '#/components/requestBodies/UnweightedNeighbors'}
+      responses:
+        '200': {$ref: '#/components/responses/BatchAnalysis'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/unweighted/ordered/analyze:
+    post:
+      tags: [Unweighted graph]
+      operationId: analyzeUnweightedDirectedGraph
+      summary: 有向グラフの複数の静的解析をまとめて実行する
+      requestBody: {$ref: '#/components/requestBodies/UnweightedNeighbors'}
+      responses:
+        '200': {$ref: '#/components/responses/BatchAnalysis'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+
+  /apis/graphs/weighted/ordered/dijkstra:
+    post:
+      tags: [Weighted graph]
+      operationId: dijkstra
+      summary: Dijkstra 法で最短距離を求める
+      requestBody: {$ref: '#/components/requestBodies/WeightedNeighbors'}
+      responses:
+        '200':
+          description: 最短距離と直前頂点
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DijkstraResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/weighted/unordered/prim:
+    post:
+      tags: [Weighted graph]
+      operationId: prim
+      summary: Prim 法で最小全域木を求める
+      requestBody: {$ref: '#/components/requestBodies/WeightedNeighbors'}
+      responses:
+        '200':
+          description: 最小全域木
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PrimResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/weighted/unordered/treediameter:
+    post:
+      tags: [Weighted graph]
+      operationId: getWeightedTreeDiameter
+      summary: 重み付き木の直径を求める
+      requestBody: {$ref: '#/components/requestBodies/WeightedNeighbors'}
+      responses:
+        '200':
+          description: 直径と端点
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/WeightedTreeDiameterResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/graphs/weighted/unordered/analyze:
+    post:
+      tags: [Weighted graph]
+      operationId: analyzeWeightedUndirectedGraph
+      summary: 重み付き無向グラフの複数の解析をまとめて実行する
+      requestBody: {$ref: '#/components/requestBodies/WeightedNeighbors'}
+      responses:
+        '200': {$ref: '#/components/responses/BatchAnalysis'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+
+  /apis/random-gen/generate:
+    post:
+      tags: [Random Gen]
+      operationId: generateRandomCase
+      summary: recipe からテストケースを生成する
+      requestBody: {$ref: '#/components/requestBodies/Recipe'}
+      responses:
+        '200':
+          description: 正規化された recipe と生成結果
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [recipe, inputText]
+                properties:
+                  recipe: {$ref: '#/components/schemas/GenerationRecipe'}
+                  inputText: {type: string, maxLength: 10485760}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /apis/random-gen/history:
+    post:
+      tags: [Random Gen]
+      operationId: saveGenerationHistory
+      summary: 生成履歴を保存する
+      description: 履歴は作成から 24 時間で失効し、ユーザーごとに最大 50 件です。
+      security: [{cookieAuth: []}]
+      requestBody: {$ref: '#/components/requestBodies/Recipe'}
+      responses:
+        '201':
+          description: 保存した履歴
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/HistoryItem'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+    get:
+      tags: [Random Gen]
+      operationId: listGenerationHistory
+      summary: 生成履歴を 10 件ずつ取得する
+      security: [{cookieAuth: []}]
+      parameters: [{$ref: '#/components/parameters/Page'}]
+      responses:
+        '200':
+          description: 生成履歴
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/HistoryPage'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /apis/random-gen/history/{id}:
+    delete:
+      tags: [Random Gen]
+      operationId: deleteGenerationHistory
+      summary: 自分の生成履歴を削除する
+      security: [{cookieAuth: []}]
+      parameters: [{$ref: '#/components/parameters/ResourceId'}]
+      responses:
+        '204': {description: 削除成功}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /apis/random-gen/killed-cases:
+    post:
+      tags: [Random Gen]
+      operationId: saveKilledCase
+      summary: 撃墜ケースを保存する
+      security: [{cookieAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/KilledCaseInput'}
+      responses:
+        '201':
+          description: 保存した撃墜ケース
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/KilledCase'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+    get:
+      tags: [Random Gen]
+      operationId: listKilledCases
+      summary: 撃墜ケースを 10 件ずつ取得する
+      security: [{cookieAuth: []}]
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+        - name: tag
+          in: query
+          description: reasonTags の完全一致で絞り込む
+          schema: {type: string, minLength: 1, maxLength: 50}
+      responses:
+        '200':
+          description: 撃墜ケース
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - {$ref: '#/components/schemas/PaginationEnvelope'}
+                  - type: object
+                    required: [killedCases]
+                    properties:
+                      killedCases: {type: array, items: {$ref: '#/components/schemas/KilledCase'}}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /apis/random-gen/killed-cases/{id}:
+    delete:
+      tags: [Random Gen]
+      operationId: deleteKilledCase
+      summary: 自分の撃墜ケースを削除する
+      security: [{cookieAuth: []}]
+      parameters: [{$ref: '#/components/parameters/ResourceId'}]
+      responses:
+        '204': {description: 削除成功}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /apis/random-gen/presets:
+    post:
+      tags: [Random Gen]
+      operationId: savePreset
+      summary: 生成 recipe をプリセットとして保存する
+      security: [{cookieAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, recipe]
+              properties:
+                name: {type: string, minLength: 1, maxLength: 80}
+                recipe: {$ref: '#/components/schemas/GenerationRecipe'}
+      responses:
+        '201':
+          description: 保存したプリセット
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Preset'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+    get:
+      tags: [Random Gen]
+      operationId: listPresets
+      summary: 自分のプリセットをすべて取得する
+      security: [{cookieAuth: []}]
+      responses:
+        '200':
+          description: プリセット
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [presets]
+                properties:
+                  presets: {type: array, items: {$ref: '#/components/schemas/Preset'}}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: cpa_session
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: 1 始まりのページ番号。1 ページ 10 件。
+      schema: {type: integer, minimum: 1, default: 1}
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+  requestBodies:
+    ArrayValues:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ArrayValuesRequest'}
+    TargetArray:
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - {$ref: '#/components/schemas/ArrayValuesRequest'}
+              - type: object
+                required: [target]
+                properties: {target: {$ref: '#/components/schemas/Integer64'}}
+    WindowArray:
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - {$ref: '#/components/schemas/ArrayValuesRequest'}
+              - type: object
+                required: [window_size]
+                properties: {window_size: {type: integer, minimum: 1, maximum: 200000}}
+    UnweightedEdges:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/UnweightedEdgeRequest'}
+    UnweightedNeighbors:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/UnweightedNeighborRequest'}
+    WeightedNeighbors:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/WeightedNeighborRequest'}
+    Recipe:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [recipe]
+            properties: {recipe: {$ref: '#/components/schemas/GenerationRecipe'}}
+  responses:
+    BadRequest:
+      description: リクエスト形式または入力制約が不正
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    Unauthorized:
+      description: ログインが必要、またはセッションが無効
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    NotFound:
+      description: 対象が存在しない、または自分のデータではない
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    Conflict:
+      description: 同じユーザー名が既に存在する
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    Count:
+      description: 条件を満たす個数
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/CountResponse'}
+    NextElement:
+      description: 各位置に対応する次の要素。存在しない位置は index -1、value null。
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/NextElementResponse'}
+    Graph:
+      description: 構築したグラフ
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/GraphResponse'}
+    BatchAnalysis:
+      description: 各解析の成功・失敗と結果
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/BatchAnalysisResponse'}
+  schemas:
+    Error:
+      type: object
+      description: エラー内容。ハンドラーにより `error` または Echo 標準の `message` を返します。
+      properties:
+        error: {type: string}
+        message: {}
+      anyOf:
+        - required: [error]
+        - required: [message]
+    Health:
+      type: object
+      required: [status, database]
+      properties:
+        status: {type: string, enum: [ok, unavailable]}
+        database: {type: string, enum: [disabled, connected, disconnected]}
+    Credentials:
+      type: object
+      additionalProperties: false
+      required: [username, password]
+      properties:
+        username: {type: string, minLength: 3, maxLength: 50}
+        password: {type: string, minLength: 8, maxLength: 72, format: password}
+    User:
+      type: object
+      required: [id, username, createdAt]
+      properties:
+        id: {type: string, format: uuid}
+        username: {type: string}
+        createdAt: {type: string, format: date-time}
+    Integer64:
+      type: integer
+      format: int64
+      minimum: -1000000000
+      maximum: 1000000000
+    Integer64Array:
+      type: array
+      items: {type: integer, format: int64}
+    ArrayValuesRequest:
+      type: object
+      required: [values]
+      properties:
+        values:
+          type: array
+          minItems: 1
+          maxItems: 200000
+          items: {$ref: '#/components/schemas/Integer64'}
+    RangeQueryRequest:
+      allOf:
+        - {$ref: '#/components/schemas/ArrayValuesRequest'}
+        - type: object
+          required: [left, right_exclusive]
+          properties:
+            left: {type: integer, minimum: 0}
+            right_exclusive: {type: integer, minimum: 1, maximum: 200000}
+    CountResponse:
+      type: object
+      required: [count]
+      properties: {count: {type: integer, format: int64, minimum: 0}}
+    NextElementResponse:
+      type: object
+      required: [next_indices, next_values]
+      properties:
+        next_indices: {type: array, items: {type: integer, minimum: -1}}
+        next_values: {type: array, items: {anyOf: [{$ref: '#/components/schemas/Integer64'}, {type: 'null'}]}}
+    Edge:
+      type: array
+      prefixItems: [{type: integer, minimum: 0}, {type: integer, minimum: 0}]
+      minItems: 2
+      maxItems: 2
+    UnweightedEdgeRequest:
+      type: object
+      additionalProperties: false
+      required: [vertex_count, edges]
+      properties:
+        vertex_count: {type: integer, minimum: 1}
+        edges: {type: array, items: {$ref: '#/components/schemas/Edge'}}
+    UnweightedNeighborRequest:
+      type: object
+      additionalProperties: false
+      required: [vertex_count, neighbors, start_vertex]
+      properties:
+        vertex_count: {type: integer, minimum: 1}
+        neighbors: {type: array, items: {type: array, items: {type: integer, minimum: 0}}}
+        start_vertex: {type: integer, minimum: 0}
+    LCARequest:
+      type: object
+      additionalProperties: false
+      required: [vertex_count, neighbors, root, queries]
+      properties:
+        vertex_count: {type: integer, minimum: 1}
+        neighbors: {type: array, items: {type: array, items: {type: integer, minimum: 0}}}
+        root: {type: integer, minimum: 0}
+        queries: {type: array, items: {$ref: '#/components/schemas/Edge'}}
+    GraphResponse:
+      type: object
+      required: [graph]
+      properties:
+        graph:
+          type: object
+          required: [vertex_size, edges]
+          properties:
+            vertex_size: {type: integer, minimum: 1}
+            edges: {type: array, items: {$ref: '#/components/schemas/Edge'}}
+    DFSResponse:
+      type: object
+      required: [start_vertex, pre_order, post_order, parents]
+      properties:
+        start_vertex: {type: integer, minimum: 0}
+        pre_order: {type: array, items: {type: integer, minimum: 0}}
+        post_order: {type: array, items: {type: integer, minimum: 0}}
+        parents: {type: array, items: {type: integer}}
+    BipartiteResponse:
+      type: object
+      required: [is_binary_tree, group_one, group_two, odd_cycle]
+      properties:
+        is_binary_tree: {type: boolean}
+        group_one: {type: array, items: {type: integer, minimum: 0}}
+        group_two: {type: array, items: {type: integer, minimum: 0}}
+        odd_cycle: {type: array, items: {type: integer, minimum: 0}}
+    TreeCheckResponse:
+      type: object
+      required: [is_tree, cycle, components]
+      properties:
+        is_tree: {type: boolean}
+        cycle: {type: array, items: {type: integer, minimum: 0}}
+        components: {type: array, items: {type: array, items: {type: integer, minimum: 0}}}
+    TreeDistanceResponse:
+      type: object
+      required: [tree_dir, vertex1, vertex2]
+      properties:
+        tree_dir: {type: integer, format: int64, minimum: 0}
+        vertex1: {type: integer, minimum: 0}
+        vertex2: {type: integer, minimum: 0}
+    TopologicalSortResponse:
+      type: object
+      required: [sortable, vertices, cycle]
+      properties:
+        sortable: {type: boolean}
+        vertices: {type: array, items: {type: integer, minimum: 0}}
+        cycle: {type: array, items: {type: integer, minimum: 0}}
+    CycleResponse:
+      type: object
+      required: [has_cycle, cycle]
+      properties:
+        has_cycle: {type: boolean}
+        cycle: {type: array, items: {type: integer, minimum: 0}}
+    UnionFindResponse:
+      type: object
+      required: [parents, components]
+      properties:
+        parents: {type: array, items: {type: integer, minimum: 0}}
+        components: {type: array, items: {type: array, items: {type: integer, minimum: 0}}}
+    LowLinkResponse:
+      type: object
+      required: [articulation_points, bridges]
+      properties:
+        articulation_points: {type: array, items: {type: integer, minimum: 0}}
+        bridges:
+          type: array
+          items:
+            type: object
+            required: [from, to]
+            properties:
+              from: {type: integer, minimum: 0}
+              to: {type: integer, minimum: 0}
+    WeightedNeighbor:
+      type: object
+      additionalProperties: false
+      required: [to, weight]
+      properties:
+        to: {type: integer, minimum: 0}
+        weight: {type: integer, format: int64}
+    WeightedNeighborRequest:
+      type: object
+      additionalProperties: false
+      required: [vertex_count, neighbors, start_vertex]
+      properties:
+        vertex_count: {type: integer, minimum: 1}
+        neighbors: {type: array, items: {type: array, items: {$ref: '#/components/schemas/WeightedNeighbor'}}}
+        start_vertex: {type: integer, minimum: 0}
+    DijkstraResponse:
+      type: object
+      required: [start_vertex, distances, previous]
+      properties:
+        start_vertex: {type: integer, minimum: 0}
+        distances: {type: array, items: {type: integer, format: int64}}
+        previous: {type: array, items: {type: integer}}
+    WeightedEdge:
+      type: object
+      required: [from, to, weight]
+      properties:
+        from: {type: integer, minimum: 0}
+        to: {type: integer, minimum: 0}
+        weight: {type: integer, format: int64}
+    PrimResponse:
+      type: object
+      required: [is_spanning, total_weight, edges]
+      properties:
+        is_spanning: {type: boolean}
+        total_weight: {type: integer, format: int64}
+        edges: {type: array, items: {$ref: '#/components/schemas/WeightedEdge'}}
+    WeightedTreeDiameterResponse:
+      type: object
+      required: [diameter, vertex1, vertex2]
+      properties:
+        diameter: {type: integer, format: int64}
+        vertex1: {type: integer, minimum: 0}
+        vertex2: {type: integer, minimum: 0}
+    BatchAnalysisResponse:
+      type: object
+      required: [results]
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            required: [id, status]
+            properties:
+              id: {type: string}
+              status: {type: string, enum: [success, skipped, error]}
+              data: {type: object, additionalProperties: true}
+              reason: {type: string}
+    GenerationRecipe:
+      type: object
+      additionalProperties: false
+      required: [generatorVersion, rngAlgorithm, seed, structureType, caseType, params, outputFormat]
+      properties:
+        generatorVersion: {type: string, const: 0.1.0}
+        rngAlgorithm: {type: string, const: splitmix64-v1}
+        seed:
+          type: string
+          pattern: '^[0-9]+$'
+          description: 0 以上 2^64 - 1 以下の符号なし 64-bit 整数を十進文字列で指定する。
+        structureType: {type: string, enum: [array, tree, graph]}
+        caseType:
+          type: string
+          enum: [uniform, all_same, many_duplicates, sorted_asc, sorted_desc, almost_sorted, zero_heavy, min_max_heavy, alternating, random, path, star, binary_like, broom, random_sparse, random_dense, tree, dag, cycle_heavy, disconnected]
+        params:
+          type: object
+          description: |
+            共通: N (1..200000)、hasT のとき testCount (1..100)。
+            array: minValue/maxValue (-1e9..1e9)。
+            tree: weighted、shuffleLabels、重み付きなら minWeight/maxWeight。
+            graph: M (0..500000)、directed、connected、allowSelfLoop、allowMultiEdge、weighted、必要なら minWeight/maxWeight。
+          additionalProperties: true
+        outputFormat:
+          type: object
+          additionalProperties: false
+          required: [indexBase, hasT, lineBreakStyle]
+          properties:
+            indexBase: {type: integer, enum: [0, 1]}
+            hasT: {type: boolean}
+            lineBreakStyle: {type: string, const: lf}
+    HistoryItem:
+      type: object
+      required: [id, createdAt, expiresAt, recipe, killedFlag]
+      properties:
+        id: {type: string, format: uuid}
+        createdAt: {type: string, format: date-time}
+        expiresAt: {type: string, format: date-time}
+        recipe: {$ref: '#/components/schemas/GenerationRecipe'}
+        killedFlag: {type: boolean}
+    Pagination:
+      type: object
+      required: [page, pageSize, total]
+      properties:
+        page: {type: integer, minimum: 1}
+        pageSize: {type: integer, const: 10}
+        total: {type: integer, minimum: 0}
+    PaginationEnvelope:
+      type: object
+      required: [pagination]
+      properties: {pagination: {$ref: '#/components/schemas/Pagination'}}
+    HistoryPage:
+      allOf:
+        - {$ref: '#/components/schemas/PaginationEnvelope'}
+        - type: object
+          required: [history]
+          properties: {history: {type: array, maxItems: 10, items: {$ref: '#/components/schemas/HistoryItem'}}}
+    KilledCaseInput:
+      type: object
+      required: [title, recipe, failureType, reasonTags, notes]
+      properties:
+        title: {type: string, minLength: 1, maxLength: 120}
+        recipe: {$ref: '#/components/schemas/GenerationRecipe'}
+        failureType: {type: string, enum: [WA, RE, TLE, MLE, CE, UNKNOWN]}
+        reasonTags: {type: array, maxItems: 20, uniqueItems: true, items: {type: string, minLength: 1, maxLength: 50}}
+        notes: {type: string, maxLength: 5000}
+    KilledCase:
+      allOf:
+        - {$ref: '#/components/schemas/KilledCaseInput'}
+        - type: object
+          required: [id, createdAt, updatedAt, isFavorite]
+          properties:
+            id: {type: string, format: uuid}
+            createdAt: {type: string, format: date-time}
+            updatedAt: {type: string, format: date-time}
+            isFavorite: {type: boolean}
+    Preset:
+      type: object
+      required: [id, name, createdAt, updatedAt, recipe]
+      properties:
+        id: {type: string, format: uuid}
+        name: {type: string, minLength: 1, maxLength: 80}
+        createdAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}
+        recipe: {$ref: '#/components/schemas/GenerationRecipe'}
