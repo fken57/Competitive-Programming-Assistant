@@ -146,11 +146,50 @@ Dockerfile           フロント・バック統合Runtimeイメージ
 
 ## テスト
 
+### ローカル実行
+
 ```bash
 cd backend
-go test . ./internal/...
+go test -count=1 . ./internal/...
+
+# Backend Architectureだけを実行
+go test . -run '^TestArchitecture' -count=1
 
 cd ../react-sample-app
+npm ci
 npm test -- --watchAll=false --runInBand
+
+# 本番用ビルドの確認（現在のCI対象外）
 npm run build
 ```
+
+Backendは、手動確認用の`cmd`に複数の`main`関数があるため、`go test ./...`ではなく上記の対象範囲を使用します。
+
+### CI
+
+GitHub Actionsの`CI`ワークフローは、すべてのPull Requestと`main`へのpushで次の3ジョブを並列実行します。Actions画面からの手動実行も可能です。
+
+| ジョブ | 実行内容 |
+| --- | --- |
+| Backend Architecture | `go test . -run '^TestArchitecture' -count=1 -timeout=2m` |
+| Backend Unit | `go test -race -count=1 -timeout=5m . ./internal/...` |
+| Frontend Unit | `npm ci`後、`CI=true`で`npm test -- --watchAll=false --runInBand` |
+
+実行環境はUbuntu、Goは`backend/go.mod`の指定バージョン、Node.jsは22系です。依存は`go.sum`と`package-lock.json`を基準にキャッシュし、同じPR・ブランチの古い実行はキャンセルします。Backend Unitでは軽量なArchitectureテストも再実行します。
+
+Architectureテストは、本番用の`internal/**/*.go`のimportを解析し、次の依存を禁止します。
+
+| 依存元 | 禁止する依存先 |
+| --- | --- |
+| domain | usecase・handler・infrastructure、Echo・sqlx・MySQL driver・`database/sql` |
+| usecase | handler・infrastructure |
+| handler | infrastructure |
+| infrastructure | handler・usecase |
+
+`main.go`は依存を組み立てる場所として扱い、`*_test.go`からのメモリRepository利用は許容します。禁止依存の検出、許容依存、テストコードの除外もテストしています。
+
+今回のCIにはE2E、Frontend Architecture、DB統合、本番用ビルドの検証を含みません。MariaDBは起動せず、`MARIADB_TEST_DSN`を空にするため、既存のmigration統合テストはスキップされます。CI成功はDB統合の成功を意味しません。
+
+3ジョブの成功確認後、ブランチ保護ルールで`Backend Architecture`・`Backend Unit`・`Frontend Unit`を必須チェックに設定できます。ワークフローの追加だけではブランチ保護ルールは変更されません。
+
+`-race`には対応する64bit環境とCコンパイラが必要です。手元の環境で対応していない場合は通常のGoテストを実行し、競合検出はCIで確認してください。
