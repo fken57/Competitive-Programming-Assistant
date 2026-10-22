@@ -6,6 +6,9 @@
 !**/.env.example
 **/node_modules
 react-sample-app/build
+react-sample-app/playwright-report
+react-sample-app/test-results
+react-sample-app/e2e-server.log
 backend/tmp
 backend/*.exe
 coverage

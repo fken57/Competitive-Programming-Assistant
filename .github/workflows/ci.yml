@@ -74,3 +74,62 @@ jobs:
         run: npm ci
       - name: Run frontend tests
         run: npm test -- --watchAll=false --runInBand
+
+  e2e:
+    name: E2E
+    needs: [backend-architecture, backend-unit, frontend-unit]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: react-sample-app
+    env:
+      CI: 'true'
+      REACT_APP_API_BASE_URL: /apis
+      DATABASE_URL: mariadb://cpa_e2e:cpa-e2e-only@127.0.0.1:13306/cpa_e2e
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_DATABASE: cpa_e2e
+          MARIADB_USER: cpa_e2e
+          MARIADB_PASSWORD: cpa-e2e-only
+          MARIADB_ROOT_PASSWORD: cpa-e2e-root-only
+        ports:
+          - 13306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: react-sample-app/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Build frontend for the Go server
+        run: npm run build
+      - name: Run browser E2E tests
+        run: npm run test:e2e
+      - name: Upload E2E report and server logs
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-results
+          path: |
+            react-sample-app/playwright-report/
+            react-sample-app/test-results/
+            react-sample-app/e2e-server.log
+          retention-days: 7
