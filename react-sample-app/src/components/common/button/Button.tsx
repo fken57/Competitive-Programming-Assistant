@@ -1,6 +1,5 @@
 import React from 'react';
 import  './Button.css';
-import { Navigate } from 'react-router-dom';
 
 type ButtonProps = {
     color:string;

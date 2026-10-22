@@ -7,6 +7,10 @@
 
 # testing
 /coverage
+/react-sample-app/build/
+/react-sample-app/playwright-report/
+/react-sample-app/test-results/
+/react-sample-app/e2e-server.log
 
 # production
 /build

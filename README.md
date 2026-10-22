@@ -159,7 +159,7 @@ cd ../react-sample-app
 npm ci
 npm test -- --watchAll=false --runInBand
 
-# 本番用ビルドの確認（現在のCI対象外）
+# 本番用フロントエンドのビルド確認
 npm run build
 ```
 
@@ -167,13 +167,14 @@ Backendは、手動確認用の`cmd`に複数の`main`関数があるため、`g
 
 ### CI
 
-GitHub Actionsの`CI`ワークフローは、すべてのPull Requestと`main`へのpushで次の3ジョブを並列実行します。Actions画面からの手動実行も可能です。
+GitHub Actionsの`CI`ワークフローは、すべてのPull Requestと`main`へのpushでUnit・Architectureの3ジョブを並列実行し、すべて成功した後にE2Eを実行します。Actions画面からの手動実行も可能です。
 
 | ジョブ | 実行内容 |
 | --- | --- |
 | Backend Architecture | `go test . -run '^TestArchitecture' -count=1 -timeout=2m` |
 | Backend Unit | `go test -race -count=1 -timeout=5m . ./internal/...` |
 | Frontend Unit | `npm ci`後、`CI=true`で`npm test -- --watchAll=false --runInBand` |
+| E2E | MariaDB・ビルド済みReact・Go・Chromiumで`npm run test:e2e` |
 
 実行環境はUbuntu、Goは`backend/go.mod`の指定バージョン、Node.jsは22系です。依存は`go.sum`と`package-lock.json`を基準にキャッシュし、同じPR・ブランチの古い実行はキャンセルします。Backend Unitでは軽量なArchitectureテストも再実行します。
 
@@ -188,8 +189,49 @@ Architectureテストは、本番用の`internal/**/*.go`のimportを解析し�
 
 `main.go`は依存を組み立てる場所として扱い、`*_test.go`からのメモリRepository利用は許容します。禁止依存の検出、許容依存、テストコードの除外もテストしています。
 
-今回のCIにはE2E、Frontend Architecture、DB統合、本番用ビルドの検証を含みません。MariaDBは起動せず、`MARIADB_TEST_DSN`を空にするため、既存のmigration統合テストはスキップされます。CI成功はDB統合の成功を意味しません。
+Backend UnitはMariaDBを起動せず、`MARIADB_TEST_DSN`を空にするため、既存のmigration統合テストはスキップされます。E2Eは別ジョブの使い捨てMariaDBを使用し、Goの起動時migrationとブラウザからの認証を検証します。Frontend Architecture、専用のDB統合テスト、Dockerイメージ自体の検証は対象外です。
 
-3ジョブの成功確認後、ブランチ保護ルールで`Backend Architecture`・`Backend Unit`・`Frontend Unit`を必須チェックに設定できます。ワークフローの追加だけではブランチ保護ルールは変更されません。
+成功確認後、ブランチ保護ルールで`Backend Architecture`・`Backend Unit`・`Frontend Unit`・`E2E`を必須チェックに設定できます。ワークフローの追加だけではブランチ保護ルールは変更されません。
 
 `-race`には対応する64bit環境とCコンパイラが必要です。手元の環境で対応していない場合は通常のGoテストを実行し、競合検出はCIで確認してください。
+
+### ブラウザE2E
+
+PlaywrightのChromiumで次の5ケースを実行します。APIモックは使用せず、各テストのブラウザ状態を分離します。
+
+- Homeから各機能への遷移、直接URL・再読み込み、404と静的ファイルの配信。
+- Array入力から累積和のAPI実行・結果表示。
+- Graph入力からBFSのAPI実行・3頂点と2辺の描画。
+- 固定seedのRandom Genと、共有URLを新しいブラウザ状態で開いた場合の完全再現。
+- 新規登録、自動ログイン、再読み込みでのセッション維持、ログアウト・再ログイン。
+
+ローカルではGo・Node.js 22・Dockerが必要です。次の例はE2E専用のMariaDBを新規作成します。開発用・本番用のDBは指定しないでください。
+
+```bash
+docker run --rm -d --name cpa-e2e-db -p 13306:3306 \
+  -e MARIADB_DATABASE=cpa_e2e \
+  -e MARIADB_USER=cpa_e2e \
+  -e MARIADB_PASSWORD=cpa-e2e-only \
+  -e MARIADB_ROOT_PASSWORD=cpa-e2e-root-only \
+  --health-cmd='healthcheck.sh --connect --innodb_initialized' \
+  --health-interval=5s --health-timeout=5s --health-retries=20 \
+  mariadb:11.4
+
+# healthyになったことを確認してから実行
+docker inspect --format '{{.State.Health.Status}}' cpa-e2e-db
+
+cd react-sample-app
+npm ci
+npx playwright install chromium
+REACT_APP_API_BASE_URL=/apis npm run build
+DATABASE_URL='mariadb://cpa_e2e:cpa-e2e-only@127.0.0.1:13306/cpa_e2e' npm run test:e2e
+
+# 終了後、E2E用DBを停止（--rmによりコンテナも削除）
+docker stop cpa-e2e-db
+```
+
+PowerShellでは環境変数を`$env:REACT_APP_API_BASE_URL='/apis'`、`$env:DATABASE_URL='mariadb://cpa_e2e:cpa-e2e-only@127.0.0.1:13306/cpa_e2e'`の形式で設定してください。Linuxではブラウザのシステム依存も必要な場合、`npx playwright install --with-deps chromium`を使用します。
+
+Goの起動・終了はPlaywrightが管理し、`http://127.0.0.1:18080`で配信します。DB接続が無効な場合はテストを失敗させ、メモリ動作での成功を防ぎます。初期E2Eは`APP_ENV=development`のHTTP環境を使用し、本番HTTPS・Secure Cookie属性は検証対象外です。
+
+実行は1 worker・自動再試行なしです。失敗時のスクリーンショット・trace、HTMLレポート、`e2e-server.log`をCIの`e2e-results`へ7日間保存します。ローカルのレポートは`npx playwright show-report`で開けます。
